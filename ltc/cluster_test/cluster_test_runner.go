@@ -89,8 +89,27 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 		}
 	})
 
+	var launchedApps, launchedAppRoutes, createdDroplets []string
+
 	AfterSuite(func() {
 		gexec.CleanupBuildArtifacts()
+
+		for i, appName := range launchedApps {
+			Eventually(func() int {
+				return runner.removeAppAtAllCosts(1, appName)
+			}, 10, 1).Should(Equal(0))
+
+			appRoute := launchedAppRoutes[i]
+			if appRoute != "" {
+				Eventually(errorCheckForRoute(appRoute)).Should(HaveOccurred())
+			}
+		}
+
+		for _, dropletName := range createdDroplets {
+			Eventually(func() int {
+				return runner.removeDropletAtAllCosts(1, dropletName)
+			}, 10, 1).Should(Equal(0))
+		}
 	})
 
 	Describe("Lattice", func() {
@@ -106,15 +125,12 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 					appRoute = fmt.Sprintf("%s.%s", appName, runner.config.Target())
 				})
 
-				AfterEach(func() {
-					runner.removeApp(timeout, appName, fmt.Sprintf("--timeout=%s", timeout.String()))
-
-					Eventually(errorCheckForRoute(appRoute), timeout, 1).Should(HaveOccurred())
-				})
-
 				It("should run a docker app", func() {
 					debugLogsStream := runner.streamDebugLogs(timeout)
 					defer func() { debugLogsStream.Terminate().Wait() }()
+
+					launchedApps = append(launchedApps, appName)
+					launchedAppRoutes = append(launchedAppRoutes, appRoute)
 
 					runner.createDockerApp(timeout, appName, "cloudfoundry/lattice-app", fmt.Sprintf("--timeout=%s", timeout.String()), "--working-dir=/", "--env", "APP_NAME", "--", "/lattice-app", "--message", "Hello Lattice User", "--quiet")
 
@@ -137,6 +153,9 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 				})
 
 				It("should run a docker app using metadata from Docker Hub", func() {
+					launchedApps = append(launchedApps, appName)
+					launchedAppRoutes = append(launchedAppRoutes, appRoute)
+
 					runner.createDockerApp(timeout, appName, "cloudfoundry/lattice-app")
 
 					Eventually(errorCheckForRoute(appRoute), timeout, .5).ShouldNot(HaveOccurred())
@@ -144,6 +163,9 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 
 				Context("when the docker app requires escalated privileges to run", func() {
 					It("should start the nginx app successfully", func() {
+						launchedApps = append(launchedApps, appName)
+						launchedAppRoutes = append(launchedAppRoutes, appRoute)
+
 						By("passing the `--run-as-root` flag to `ltc create`")
 						runner.createDockerApp(timeout, appName, "cloudfoundry/lattice-app", "--run-as-root", fmt.Sprintf("--timeout=%s", timeout.String()))
 
@@ -174,11 +196,10 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 					appName = fmt.Sprintf("lattice-test-app-%s", appGUID.String())
 				})
 
-				AfterEach(func() {
-					runner.removeApp(timeout, appName, fmt.Sprintf("--timeout=%s", timeout.String()))
-				})
-
 				It("should run a docker app exposing tcp routes", func() {
+					launchedApps = append(launchedApps, appName)
+					launchedAppRoutes = append(launchedAppRoutes, "")
+
 					runner.createDockerApp(timeout, appName, "cloudfoundry/tcp-sample-receiver", fmt.Sprintf("--tcp-routes=%d:5222", externalPort), fmt.Sprintf("--timeout=%s", timeout.String()))
 					Eventually(errorCheckForConnection(runner.config.Target(), externalPort, "docker-server1"), timeout, 1).ShouldNot(HaveOccurred())
 
@@ -221,7 +242,7 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 			})
 
 			AfterEach(func() {
-				runner.removeApp(timeout, appName, fmt.Sprintf("--timeout=%s", timeout.String()))
+				runner.removeApp(timeout, appName)
 				Eventually(errorCheckForRoute(appRoute), timeout, .5).Should(HaveOccurred())
 
 				runner.removeDroplet(timeout, dropletName)
@@ -233,6 +254,8 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 				gitDir := runner.cloneRepo(timeout, "https://github.com/pivotal-cf-experimental/lattice-app.git")
 				defer os.RemoveAll(gitDir)
 
+				createdDroplets = append(createdDroplets, dropletName)
+
 				By("launching a build task")
 				runner.buildDroplet(timeout, dropletName, "https://github.com/cloudfoundry/go-buildpack.git", gitDir)
 
@@ -241,6 +264,9 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 
 				By("listing droplets")
 				runner.listDroplets(timeout, dropletName)
+
+				launchedApps = append(launchedApps, appName)
+				launchedAppRoutes = append(launchedAppRoutes, appRoute)
 
 				By("launching the droplet")
 				runner.launchDroplet(timeout, appName, dropletName)
@@ -402,7 +428,22 @@ func (runner *clusterTestRunner) scaleApp(timeout time.Duration, appName string,
 	Expect(session.Out).To(gbytes.Say("App Scaled Successfully"))
 }
 
-func (runner *clusterTestRunner) removeApp(timeout time.Duration, appName string, args ...string) {
+func (runner *clusterTestRunner) removeAppAtAllCosts(timeout time.Duration, appName string) int {
+	fmt.Fprintln(getStyledWriter("test"), colors.PurpleUnderline(fmt.Sprintf("Cleaning up app %s", appName)))
+	command := runner.command("remove", appName)
+	session, _ := gexec.Start(command, getStyledWriter("remove"), getStyledWriter("remove"))
+	return session.Wait(5).ExitCode()
+}
+
+func (runner *clusterTestRunner) removeDropletAtAllCosts(timeout time.Duration, dropletName string) int {
+	fmt.Fprintln(getStyledWriter("test"), colors.PurpleUnderline(fmt.Sprintf("Cleaning up droplet %s", dropletName)))
+
+	command := runner.command("remove-droplet", dropletName)
+	session, _ := gexec.Start(command, getStyledWriter("remove-droplet"), getStyledWriter("remove-droplet"))
+	return session.Wait(5).ExitCode()
+}
+
+func (runner *clusterTestRunner) removeApp(timeout time.Duration, appName string) {
 	fmt.Fprintln(getStyledWriter("test"), colors.PurpleUnderline(fmt.Sprintf("Attempting to remove app %s", appName)))
 
 	command := runner.command("remove", appName)
