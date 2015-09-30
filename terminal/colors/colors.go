@@ -3,14 +3,14 @@ package colors
 var ColorCodeLength = len(red) + len(defaultStyle)
 
 const (
-	red             string = "\x1b[91m"
-	cyan            string = "\x1b[36m"
-	green           string = "\x1b[32m"
-	yellow          string = "\x1b[33m"
-	purpleUnderline string = "\x1b[35;4m"
-	defaultStyle    string = "\x1b[0m"
-	boldStyle       string = "\x1b[1m"
-	grayColor       string = "\x1b[90m"
+	red             string = ""
+	cyan            string = ""
+	green           string = ""
+	yellow          string = ""
+	purpleUnderline string = ""
+	defaultStyle    string = ""
+	boldStyle       string = ""
+	grayColor       string = ""
 )
 
 func Red(output string) string {
