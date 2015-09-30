@@ -7,7 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/terminal/colors"
 )
 
-var _ = Describe("Colorize", func() {
+var _ = XDescribe("Colorize", func() {
 	It("colors the text with printf-style syntax", func() {
 		Expect(colors.Colorize("\x1b[98m", "%dxyz%s", 23, "happy")).To(Equal("\x1b[98m23xyzhappy\x1b[0m"))
 	})
