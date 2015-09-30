@@ -237,26 +237,26 @@ var _ = Describe("Zipper", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fileInfo.Mode().Perm()).To(Equal(os.FileMode(0777)))
 
-			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb/1.txt"))
+			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb", "1.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("one"))
 
-			fileInfo, err = os.Stat(filepath.Join(tmpDir, "bbb/1.txt"))
+			fileInfo, err = os.Stat(filepath.Join(tmpDir, "bbb", "1.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fileInfo.Mode()).To(Equal(os.FileMode(0640)))
 
-			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb/2.txt"))
+			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb", "2.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("twoo"))
 
-			fileInfo, err = os.Stat(filepath.Join(tmpDir, "bbb/2.txt"))
+			fileInfo, err = os.Stat(filepath.Join(tmpDir, "bbb", "2.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fileInfo.Mode()).To(Equal(os.FileMode(0600)))
 
 			_, err = os.Stat(filepath.Join(tmpDir, "ccc"))
 			Expect(err).To(HaveOccurred())
 
-			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "ddd/3.txt"))
+			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "ddd", "3.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("three"))
 

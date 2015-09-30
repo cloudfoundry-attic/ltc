@@ -69,10 +69,10 @@ func (zipper *DropletArtifactZipper) Zip(srcDir string, cfIgnore cf_ignore.CFIgn
 		}
 
 		if h, err := zip.FileInfoHeader(info); err == nil {
-			h.Name = relativePath
+			h.Name = filepath.ToSlash(relativePath)
 
 			if info.IsDir() {
-				h.Name = h.Name + "/"
+				h.Name = h.Name + string(rune(filepath.Separator))
 			}
 
 			h.SetMode(info.Mode())
