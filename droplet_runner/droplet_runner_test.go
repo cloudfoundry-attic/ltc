@@ -88,6 +88,7 @@ var _ = Describe("DropletRunner", func() {
 			})
 
 			AfterEach(func() {
+				tmpFile.Close()
 				Expect(os.Remove(tmpFile.Name())).To(Succeed())
 			})
 
@@ -102,7 +103,7 @@ var _ = Describe("DropletRunner", func() {
 
 			It("returns an error when we fail to open the droplet bits", func() {
 				err := dropletRunner.UploadBits("droplet-name", "some non-existent file")
-				Expect(err).To(MatchError("open some non-existent file: no such file or directory"))
+				Expect(err).To(HaveOccurred())
 			})
 
 			It("returns an error when the upload fails", func() {
@@ -565,6 +566,8 @@ var _ = Describe("DropletRunner", func() {
 
 		It("returns IO readers for the droplet and its metadata", func() {
 			dropletReader, metadataReader, err := dropletRunner.ExportDroplet("drippy")
+			defer dropletReader.Close()
+			defer metadataReader.Close()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ioutil.ReadAll(dropletReader)).To(BeEquivalentTo("some droplet reader"))
 			Expect(ioutil.ReadAll(metadataReader)).To(BeEquivalentTo("some metadata reader"))
@@ -644,12 +647,12 @@ var _ = Describe("DropletRunner", func() {
 		Context("when the droplet files do not exist", func() {
 			It("returns an error opening the droplet file", func() {
 				err := dropletRunner.ImportDroplet("drippy", "some/missing/droplet/path", metadataPathArg)
-				Expect(err).To(MatchError("open some/missing/droplet/path: no such file or directory"))
+				Expect(err).To(HaveOccurred())
 			})
 
 			It("returns an error opening the metadata file", func() {
 				err := dropletRunner.ImportDroplet("drippy", dropletPathArg, "some/missing/metadata/path")
-				Expect(err).To(MatchError("open some/missing/metadata/path: no such file or directory"))
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
