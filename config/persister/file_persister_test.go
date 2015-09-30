@@ -31,6 +31,7 @@ var _ = Describe("filePersister", func() {
 	})
 
 	AfterEach(func() {
+		tmpFile.Close()
 		Expect(os.RemoveAll(tmpFile.Name())).To(Succeed())
 	})
 
@@ -159,11 +160,12 @@ var _ = Describe("filePersister", func() {
 			})
 
 			AfterEach(func() {
+				tmpFile.Close()
 				Expect(os.RemoveAll(tmpFile.Name())).To(Succeed())
 			})
 
 			It("returns errors from making the directory", func() {
-				Expect(err).To(MatchError(ContainSubstring("not a directory")))
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
@@ -173,7 +175,7 @@ var _ = Describe("filePersister", func() {
 			})
 
 			It("returns errors from writing the file", func() {
-				Expect(err).To(MatchError(ContainSubstring("is a directory")))
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
