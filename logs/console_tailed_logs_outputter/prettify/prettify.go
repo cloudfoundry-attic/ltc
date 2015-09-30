@@ -15,8 +15,8 @@ import (
 )
 
 var colorLookup = map[string]string{
-	"rep":          "\x1b[34m",
-	"garden-linux": "\x1b[35m",
+	"rep":          "",
+	"garden-linux": "",
 }
 
 func Prettify(logMessage *events.LogMessage) string {
