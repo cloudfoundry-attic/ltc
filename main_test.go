@@ -94,7 +94,7 @@ var _ = Describe("LatticeCli Main", func() {
 	ltcCommand := func(args ...string) *exec.Cmd {
 		command := exec.Command(ltcPath, args...)
 		cliHome := fmt.Sprintf("LATTICE_CLI_HOME=%s", configRoot)
-		command.Env = []string{cliHome}
+		command.Env = append(os.Environ(), cliHome)
 
 		return command
 	}
