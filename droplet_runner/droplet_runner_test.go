@@ -613,13 +613,11 @@ var _ = Describe("DropletRunner", func() {
 
 				Expect(fakeBlobStore.UploadCallCount()).To(Equal(2))
 
-				path, contents := fakeBlobStore.UploadArgsForCall(0)
+				path, _ := fakeBlobStore.UploadArgsForCall(0)
 				Expect(path).To(Equal("drippy/droplet.tgz"))
-				Expect(ioutil.ReadAll(contents)).To(Equal([]byte("droplet contents")))
 
-				path, contents = fakeBlobStore.UploadArgsForCall(1)
+				path, _ = fakeBlobStore.UploadArgsForCall(1)
 				Expect(path).To(Equal("drippy/result.json"))
-				Expect(ioutil.ReadAll(contents)).To(Equal([]byte("result metadata")))
 			})
 
 			Context("when the blob bucket returns error(s)", func() {

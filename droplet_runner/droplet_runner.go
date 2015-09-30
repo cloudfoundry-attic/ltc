@@ -315,10 +315,13 @@ func (dr *dropletRunner) ImportDroplet(dropletName, dropletPath, metadataPath st
 	if err != nil {
 		return err
 	}
+	defer dropletFile.Close()
+
 	metadataFile, err := os.Open(metadataPath)
 	if err != nil {
 		return err
 	}
+	defer metadataFile.Close()
 
 	if err := dr.blobStore.Upload(path.Join(dropletName, "droplet.tgz"), dropletFile); err != nil {
 		return err
