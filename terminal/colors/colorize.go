@@ -25,5 +25,5 @@ func Colorize(colorCode string, format string, args ...interface{}) string {
 		out = format
 	}
 
-	return fmt.Sprintf("%s%s%s", colorCode, out, defaultStyle)
+	return out
 }
