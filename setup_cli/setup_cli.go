@@ -62,5 +62,9 @@ func ltcConfigRoot() string {
 		return os.Getenv(latticeCliHomeVar)
 	}
 
-	return os.Getenv("HOME")
+	if home := os.Getenv("HOME"); home != "" {
+		return home
+	}
+
+	return os.Getenv("USERPROFILE")
 }
