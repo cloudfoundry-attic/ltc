@@ -111,6 +111,7 @@ func (dr *dropletRunner) UploadBits(dropletName, uploadPath string) error {
 	if err != nil {
 		return err
 	}
+	defer uploadFile.Close()
 
 	return dr.blobStore.Upload(path.Join(dropletName, "bits.zip"), uploadFile)
 }
