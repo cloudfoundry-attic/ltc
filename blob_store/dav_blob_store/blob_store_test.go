@@ -671,7 +671,7 @@ var _ = Describe("BlobStore", func() {
 			fakeServer = nil
 
 			err := blobStore.Upload("some-path/some-object", strings.NewReader("some data"))
-			Expect(err).To(MatchError(ContainSubstring("connection refused")))
+			Expect(err).To(HaveOccurred())
 		})
 
 		It("returns an error when MKCOL is required but fails", func() {
@@ -717,7 +717,7 @@ var _ = Describe("BlobStore", func() {
 			fakeServer = nil
 
 			_, err := blobStore.Download("some-path/some-object")
-			Expect(err).To(MatchError(ContainSubstring("connection refused")))
+			Expect(err).To(HaveOccurred())
 		})
 	})
 
@@ -748,7 +748,7 @@ var _ = Describe("BlobStore", func() {
 			fakeServer = nil
 
 			err := blobStore.Delete("some-path/some-object")
-			Expect(err).To(MatchError(ContainSubstring("connection refused")))
+			Expect(err).To(HaveOccurred())
 		})
 	})
 
