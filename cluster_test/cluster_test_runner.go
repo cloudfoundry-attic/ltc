@@ -387,7 +387,7 @@ func (runner *clusterTestRunner) removeApp(timeout time.Duration, appName string
 func (runner *clusterTestRunner) command(arg ...string) *exec.Cmd {
 	command := exec.Command(runner.ltcExecutablePath, arg...)
 	cliHome := fmt.Sprintf("LATTICE_CLI_HOME=%s", runner.latticeCliHome)
-	command.Env = []string{cliHome}
+	command.Env = append(os.Environ(), cliHome)
 	return command
 }
 
