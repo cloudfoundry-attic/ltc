@@ -4,8 +4,6 @@ import (
 	"errors"
 	"io"
 	"os"
-	"os/signal"
-	"syscall"
 
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
 	"github.com/cloudfoundry-incubator/ltc/exit_handler"
@@ -113,12 +111,12 @@ func (s *SSH) Shell(command string, desirePTY bool) error {
 		}
 	}
 
-	signal.Notify(s.SigWinchChannel, syscall.SIGWINCH)
-	defer func() {
-		signal.Stop(s.SigWinchChannel)
-		close(s.SigWinchChannel)
-	}()
-	go s.resize(session, os.Stdout.Fd(), width, height)
+	// signal.Notify(s.SigWinchChannel, syscall.SIGWINCH)
+	// defer func() {
+	// 	signal.Stop(s.SigWinchChannel)
+	// 	close(s.SigWinchChannel)
+	// }()
+	// go s.resize(session, os.Stdout.Fd(), width, height)
 
 	defer close(session.KeepAlive())
 
