@@ -235,7 +235,7 @@ func (runner *clusterTestRunner) cloneRepo(timeout time.Duration, repoURL string
 
 	fmt.Fprintln(getStyledWriter("test"), colors.PurpleUnderline(fmt.Sprintf("Attempting to clone %s to %s", repoURL, tmpDir)))
 
-	command := exec.Command("/usr/bin/env", "git", "clone", repoURL, tmpDir)
+	command := exec.Command(`C:\Program Files\Git\bin\git.exe`, "clone", repoURL, tmpDir)
 	session, err := gexec.Start(command, getStyledWriter("git-clone"), getStyledWriter("git-clone"))
 	Expect(err).NotTo(HaveOccurred())
 
