@@ -115,7 +115,7 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 
 			It("should run with the provided ltc options", func() {
 				debugLogsStream := runner.streamDebugLogs(timeout)
-				defer func() { debugLogsStream.Terminate().Wait() }()
+				defer func() { debugLogsStream.Terminate().Wait(timeout) }()
 
 				runner.createDockerApp(timeout, appName, "cloudfoundry/lattice-app", fmt.Sprintf("--timeout=%s", timeout.String()))
 
@@ -123,10 +123,10 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 
 				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("rep.*lattice-(colocated|cell|brain)-\\d+"))
 				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("garden-linux.*lattice-(colocated|cell|brain)-\\d+"))
-				debugLogsStream.Terminate().Wait()
+				debugLogsStream.Terminate().Wait(timeout)
 
 				logsStream := runner.streamLogs(timeout, appName)
-				defer func() { logsStream.Terminate().Wait() }()
+				defer func() { logsStream.Terminate().Wait(timeout) }()
 
 				Eventually(logsStream.Out, timeout).Should(gbytes.Say("Lattice-app. Says Hello."))
 
