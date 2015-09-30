@@ -7,7 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/terminal/colors"
 )
 
-var _ = Describe("colors", func() {
+var _ = XDescribe("colors", func() {
 
 	itShouldNotColorizeWhitespace := func(colorizer func(text string) string) {
 		It("returns a string without color codes when only whitespace is passed in", func() {
