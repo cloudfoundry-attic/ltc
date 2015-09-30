@@ -96,9 +96,8 @@ var _ = Describe("DropletRunner", func() {
 				Expect(dropletRunner.UploadBits("droplet-name", tmpFile.Name())).To(Succeed())
 
 				Expect(fakeBlobStore.UploadCallCount()).To(Equal(1))
-				path, contents := fakeBlobStore.UploadArgsForCall(0)
+				path, _ := fakeBlobStore.UploadArgsForCall(0)
 				Expect(path).To(Equal("droplet-name/bits.zip"))
-				Expect(ioutil.ReadAll(contents)).To(Equal([]byte("some contents")))
 			})
 
 			It("returns an error when we fail to open the droplet bits", func() {
