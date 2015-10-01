@@ -1,0 +1,61 @@
+1. cursor escape sequences don't work
+	- ltc/app_examiner/command_factory/app_examiner_command_factory.go
+	- ltc/app_examiner/command_factory/app_examiner_command_factory_test.go
+	- ltc/terminal/cursor/cursor_test.go
+
+2. errors don't match verbatim between windows / linux
+	- ltc/app_runner/command_factory/app_runner_command_factory_test.go
+	- ltc/blob_store/dav_blob_store/blob_store_test.go
+	- ltc/config/persister/file_persister_test.go
+	- ltc/droplet_runner/command_factory/zipper/zipper_test.go
+	- ltc/droplet_runner/proxyconf_reader_test.go
+	- ltc/task_runner/command_factory/task_runner_command_factory_test.go
+
+3. fix ltc/cluster_test/cluster_test_runner.go
+	- ginkgo.NoColor = true on windows
+	- logStream.Terminate().Wait() doesn't work on windows (?)
+	- need to find git (or git.exe) in $PATH instead of using /usr/bin/env
+	- don't use gbytes.Say() with paths (with \), use test_helpers
+	- must always append to os.Environ() instead of clearing it (breaks windows DNS / etc)
+
+4. use filepath.Join() instead of hardcoding /
+	- ltc/config/config_helpers/config_helpers_test.go
+
+5. filehandles must be .Close()'d (causes file locking issues)
+	- ltc/config/persister/file_persister_test.go
+	- ltc/droplet_runner/command_factory/droplet_runner_command_factory.go
+	- ltc/droplet_runner/droplet_runner.go
+	- ltc/droplet_runner/droplet_runner_test.go
+	- ltc/droplet_runner/command_factory/zipper/zipper.go
+	- ltc/droplet_runner/command_factory/zipper/zipper_test.go
+
+6. .zip files must use unix paths even on windows
+	- ltc/droplet_runner/command_factory/zipper/zipper.go
+
+7. can't use syscall.Umask() on windows
+	- ltc/droplet_runner/command_factory/zipper/zipper_test.go
+
+8. don't do integration-style tests here
+	- ltc/main_test.go
+
+9. use $USERPROFILE in place of $HOME for finding .lattice/config.json
+	- ltc/setup_cli/setup_cli.go
+
+10. no SIGWINCH on windows (this can be emulated, see diego ssh cf cli plugin)
+	- ltc/ssh/ssh.go
+	- ltc/ssh/ssh_test.go
+
+11. ltc ssh really needs to run in a proper terminal (remote escape sequences don't work, backspace is weird)
+	- ltc/ssh/ssh.go
+	- ltc/ssh/ssh_test.go
+	- NOTE: probably want to recommend using cygwin for ltc ssh
+
+12. need password_reader_windows.go implementation
+	- ltc/terminal/password_reader/password_reader_unix.go
+
+13. colors not supported by powershell or cmd.exe (disable color output when no $TERM?)
+	- ltc/terminal/colors/colorize.go
+	- ltc/terminal/colors/colorize_test.go
+	- ltc/terminal/colors/colors.go
+	- ltc/terminal/colors/colors_test.go
+	- ltc/logs/console_tailed_logs_outputter/prettify/prettify.go

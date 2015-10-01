@@ -1,3 +1,0 @@
-- password_reader
-- ssh
-  - syscall.SIGWINCH
