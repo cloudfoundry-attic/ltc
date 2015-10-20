@@ -25,7 +25,6 @@ import (
 
 	"github.com/cloudfoundry-incubator/ltc/config"
 	"github.com/cloudfoundry-incubator/ltc/terminal/colors"
-	"github.com/nu7hatch/gouuid"
 )
 
 var numCPU int
@@ -120,8 +119,8 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 
 				Eventually(errorCheckForRoute(appRoute), timeout, 1).ShouldNot(HaveOccurred())
 
-				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("rep.*lattice-(collocated|cell|brain)-\\d+"))
-				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("garden-linux.*lattice-(collocated|cell|brain)-\\d+"))
+				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("rep.*lattice-(colocated|cell|brain)-\\d+"))
+				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("garden-linux.*lattice-(colocated|cell|brain)-\\d+"))
 				debugLogsStream.Terminate().Wait()
 
 				logsStream := runner.streamLogs(timeout, appName)
