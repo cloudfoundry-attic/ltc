@@ -42,7 +42,7 @@ var _ = Describe("ClusterTestCommandFactory", func() {
 
 			Expect(fakeClusterTestRunner.RunCallCount()).To(Equal(1))
 			timeoutArg, verboseArg := fakeClusterTestRunner.GetArgsForRun()
-			Expect(timeoutArg).To(Equal(time.Minute * 2))
+			Expect(timeoutArg).To(Equal(time.Minute * 5))
 			Expect(verboseArg).To(BeFalse())
 		})
 	})

@@ -21,7 +21,7 @@ func (factory *ClusterTestCommandFactory) MakeClusterTestCommand() cli.Command {
 		cli.DurationFlag{
 			Name:  "timeout, t",
 			Usage: "Duration of time tests will wait for lattice to respond",
-			Value: time.Minute * 2,
+			Value: time.Minute * 5,
 		},
 		cli.BoolFlag{
 			Name:  "verbose, v",
