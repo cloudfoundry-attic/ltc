@@ -1,4 +1,4 @@
-# Lattice: Run Containerized Workloads
+# `ltc`: The Lattice CLI
 
 <table width="100%">
   <tr>
