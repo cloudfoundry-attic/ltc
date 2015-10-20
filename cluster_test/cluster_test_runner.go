@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	uuid "github.com/nu7hatch/gouuid"
 	. "github.com/onsi/ginkgo"
 	ginkgo_config "github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
