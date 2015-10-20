@@ -19,7 +19,7 @@ var _ = Describe("davtool", func() {
 
 	BeforeSuite(func() {
 		var err error
-		davtoolPath, err = gexec.Build("github.com/cloudfoundry-incubator/lattice/cell-helpers/davtool")
+		davtoolPath, err = gexec.Build("github.com/cloudfoundry-incubator/ltc/cell-helpers/davtool")
 		Expect(err).NotTo(HaveOccurred())
 	})
 

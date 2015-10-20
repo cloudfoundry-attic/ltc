@@ -17,7 +17,7 @@ var s3toolPath string
 
 var _ = BeforeSuite(func() {
 	var err error
-	s3toolPath, err = gexec.Build("github.com/cloudfoundry-incubator/lattice/cell-helpers/s3tool")
+	s3toolPath, err = gexec.Build("github.com/cloudfoundry-incubator/ltc/cell-helpers/s3tool")
 	Expect(err).NotTo(HaveOccurred())
 })
 
