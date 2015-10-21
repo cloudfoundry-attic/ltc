@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/bbs/models"
 	"github.com/cloudfoundry-incubator/ltc/route_helpers"
@@ -66,6 +67,11 @@ type InstanceMetrics struct {
 	CpuPercentage float64
 	MemoryBytes   uint64
 	DiskBytes     uint64
+}
+
+type CellKeyNumeric struct {
+	CellKey string
+	Index   int
 }
 
 type instanceInfoSortableByIndex []InstanceInfo
@@ -377,24 +383,38 @@ func sortAppKeys(allApps map[string]*AppInfo) []string {
 	return keys
 }
 
+type CellKeyNumericSort []CellKeyNumeric
+
+func (c CellKeyNumericSort) Len() int           { return len(c) }
+func (c CellKeyNumericSort) Less(i, j int) bool { return c[i].Index < c[j].Index }
+func (c CellKeyNumericSort) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+
 func sortCells(allCells map[string]*CellInfo) []CellInfo {
 	sortedKeys := sortCellKeys(allCells)
 
 	sortedCells := make([]CellInfo, 0, len(sortedKeys))
 	for _, key := range sortedKeys {
-		sortedCells = append(sortedCells, *allCells[key])
+		sortedCells = append(sortedCells, *allCells[key.CellKey])
 
 	}
 
 	return sortedCells
 }
 
-func sortCellKeys(allCells map[string]*CellInfo) []string {
-	keys := make([]string, 0, len(allCells))
+func sortCellKeys(allCells map[string]*CellInfo) []CellKeyNumeric {
+	keys := make([]CellKeyNumeric, 0, len(allCells))
+
 	for key := range allCells {
-		keys = append(keys, key)
+		index1 := 999999
+		if a := strings.LastIndex(key, "-"); a != -1 {
+			s1 := key[a+1 : len(key)]
+			if cellIndexInt, err := strconv.Atoi(s1); err == nil {
+				index1 = cellIndexInt
+			}
+		}
+		keys = append(keys, CellKeyNumeric{CellKey: key, Index: index1})
 	}
-	sort.Strings(keys)
+	sort.Sort(CellKeyNumericSort(keys))
 
 	return keys
 }
