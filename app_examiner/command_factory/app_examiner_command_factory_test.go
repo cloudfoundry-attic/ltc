@@ -178,7 +178,7 @@ var _ = Describe("CommandFactory", func() {
 			Expect(outputBuffer).To(test_helpers.Say(colors.NoColor("10")))
 			Expect(outputBuffer).To(test_helpers.Say(colors.NoColor("10")))
 
-			Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Task Name")))
+			Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Task GUID")))
 			Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Cell ID")))
 			Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Status")))
 			Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Result")))
@@ -232,7 +232,7 @@ var _ = Describe("CommandFactory", func() {
 
 				Expect(outputBuffer).To(test_helpers.SayLine("Error listing apps: The list was lost"))
 
-				Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Task Name")))
+				Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Task GUID")))
 				Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Cell ID")))
 				Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Status")))
 				Expect(outputBuffer).To(test_helpers.Say(colors.Bold("Result")))

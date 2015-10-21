@@ -125,7 +125,7 @@ func (factory *AppExaminerCommandFactory) MakeCellsCommand() cli.Command {
 		Name:    "cells",
 		Aliases: []string{"ce"},
 		Usage:   "Shows details about lattice cells",
-		Description: `ltc cells APP_NAME
+		Description: `ltc cells
  
     Output format is:
 
@@ -240,7 +240,7 @@ func (factory *AppExaminerCommandFactory) listApps(context *cli.Context) {
 		taskTableHeader := strings.Repeat("-", 30) + "= Tasks =" + strings.Repeat("-", 30)
 		fmt.Fprintln(wTask, taskTableHeader)
 		if len(taskList) != 0 {
-			taskHeader := fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t", colors.Bold("Task Name"), colors.Bold("Cell ID"), colors.Bold("Status"), colors.Bold("Result"), colors.Bold("Failure Reason"))
+			taskHeader := fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t", colors.Bold("Task GUID"), colors.Bold("Cell ID"), colors.Bold("Status"), colors.Bold("Result"), colors.Bold("Failure Reason"))
 			fmt.Fprintln(wTask, taskHeader)
 
 			for _, taskInfo := range taskList {

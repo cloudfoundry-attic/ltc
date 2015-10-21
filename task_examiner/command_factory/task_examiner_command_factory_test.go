@@ -54,7 +54,7 @@ var _ = Describe("TaskExaminer CommandFactory", func() {
 
 			test_helpers.ExecuteCommandWithArgs(taskCommand, []string{"boop"})
 
-			Expect(outputBuffer).To(test_helpers.Say("Task Name"))
+			Expect(outputBuffer).To(test_helpers.Say("Task GUID"))
 			Expect(outputBuffer).To(test_helpers.Say("boop"))
 			Expect(outputBuffer).To(test_helpers.Say("Cell ID"))
 			Expect(outputBuffer).To(test_helpers.Say("cell-01"))
@@ -81,7 +81,7 @@ var _ = Describe("TaskExaminer CommandFactory", func() {
 
 			test_helpers.ExecuteCommandWithArgs(taskCommand, []string{"boop"})
 
-			Expect(outputBuffer).To(test_helpers.Say("Task Name"))
+			Expect(outputBuffer).To(test_helpers.Say("Task GUID"))
 			Expect(outputBuffer).To(test_helpers.Say("boop"))
 			Expect(outputBuffer).To(test_helpers.Say("Cell ID"))
 			Expect(outputBuffer).To(test_helpers.Say("cell-01"))
@@ -108,7 +108,7 @@ var _ = Describe("TaskExaminer CommandFactory", func() {
 
 			test_helpers.ExecuteCommandWithArgs(taskCommand, []string{"boop"})
 
-			Expect(outputBuffer).To(test_helpers.Say("Task Name"))
+			Expect(outputBuffer).To(test_helpers.Say("Task GUID"))
 			Expect(outputBuffer).To(test_helpers.Say("boop"))
 			Expect(outputBuffer).To(test_helpers.Say("Cell ID"))
 			Expect(outputBuffer).To(test_helpers.Say("cell-01"))
@@ -125,7 +125,7 @@ var _ = Describe("TaskExaminer CommandFactory", func() {
 		It("bails out when no task name passed", func() {
 			test_helpers.ExecuteCommandWithArgs(taskCommand, []string{})
 
-			Expect(outputBuffer).To(test_helpers.SayIncorrectUsage())
+			Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid TASK_GUID"))
 			Expect(fakeTaskExaminer.TaskStatusCallCount()).To(Equal(0))
 			Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 		})
