@@ -96,16 +96,17 @@ func (e *taskRunner) DeleteTask(taskGuid string) error {
 	for {
 		select {
 		case <-ticker.C:
-			count++
-			if count == 30 {
-				return errors.New("Delete not completed because the timer expired before to complete the cancel task sucessfully")
-			}
-
 			taskInfo, err := e.taskExaminer.TaskStatus(taskGuid)
 			if err == nil && taskInfo.State == receptor.TaskStateCompleted {
 				err := e.receptorClient.DeleteTask(taskGuid)
 				return err
 			}
+
+			count++
+			if count == 30 {
+				return errors.New("Delete Task failed: task cancellation timed out")
+			}
+
 		}
 	}
 }
