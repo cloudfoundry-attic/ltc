@@ -19,7 +19,7 @@ Visit [Latest](https://github.com/cloudfoundry-incubator/lattice-release/release
 
 ## Contributing
 
-If you are interested in contributing to Lattice, please refer to [lattice-release](https://github.com/cloudfoundry-incubator/lattice-release).
+If you are interested in contributing to Lattice, please refer to [lattice-release](https://github.com/cloudfoundry-incubator/lattice-release/blob/master/CONTRIBUTING.md).
 
 # Copyright
 
