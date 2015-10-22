@@ -385,7 +385,7 @@ var _ = Describe("TaskRunner", func() {
 				fakeTaskExaminer.TaskStatusReturns(getTaskStatus(receptor.TaskStateRunning), nil)
 
 				err := taskRunner.DeleteTask("task-guid-1")
-				Expect(err).To(MatchError("Delete not completed because the timer expired before to complete the cancel task sucessfully"))
+				Expect(err).To(MatchError("Delete Task failed: task cancellation timed out"))
 			})
 		})
 
