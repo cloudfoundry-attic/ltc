@@ -295,21 +295,22 @@ var _ = Describe("AppExaminer", func() {
 		Context("receptor returns actual lrps that are all on existing cells with Diff Cell IDs", func() {
 			BeforeEach(func() {
 				actualLrps := []receptor.ActualLRPResponse{
-					receptor.ActualLRPResponse{CellID: "east-01", State: receptor.ActualLRPStateRunning},
-					receptor.ActualLRPResponse{CellID: "east-01", State: receptor.ActualLRPStateRunning},
+					receptor.ActualLRPResponse{CellID: "lattice-east-01", State: receptor.ActualLRPStateRunning},
+					receptor.ActualLRPResponse{CellID: "lattice-east-01", State: receptor.ActualLRPStateRunning},
 					receptor.ActualLRPResponse{CellID: "north-2", State: receptor.ActualLRPStateClaimed},
 					receptor.ActualLRPResponse{CellID: "north-2", State: receptor.ActualLRPStateRunning},
-					receptor.ActualLRPResponse{CellID: "cell-10", State: receptor.ActualLRPStateRunning},
-					receptor.ActualLRPResponse{CellID: "cell-10", State: receptor.ActualLRPStateRunning},
+					receptor.ActualLRPResponse{CellID: "lattice-cell-10", State: receptor.ActualLRPStateRunning},
+					receptor.ActualLRPResponse{CellID: "lattice-cell-10", State: receptor.ActualLRPStateRunning},
 				}
 				fakeReceptorClient.ActualLRPsReturns(actualLrps, nil)
 
 				cells := []receptor.CellResponse{
-					receptor.CellResponse{CellID: "east-01", Zone: "z1", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
+					receptor.CellResponse{CellID: "lattice-east-01", Zone: "z1", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
 					receptor.CellResponse{CellID: "north-2", Zone: "z1", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
-					receptor.CellResponse{CellID: "random-3", Zone: "z2", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
-					receptor.CellResponse{CellID: "Jamesbond", Zone: "z9", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
-					receptor.CellResponse{CellID: "cell-10", Zone: "z10", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
+					receptor.CellResponse{CellID: "lattice-random-3", Zone: "z2", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
+					receptor.CellResponse{CellID: "lattice-Jamesbond", Zone: "z9", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
+					receptor.CellResponse{CellID: "lattice-cell-10", Zone: "z10", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
+					receptor.CellResponse{CellID: "lattice-ReallyBig-10000000", Zone: "z11", Capacity: receptor.CellCapacity{MemoryMB: 12394, DiskMB: 2349083, Containers: 512}},
 				}
 				fakeReceptorClient.CellsReturns(cells, nil)
 			})
@@ -317,10 +318,10 @@ var _ = Describe("AppExaminer", func() {
 			It("returns a list of numarically sorted examined cells", func() {
 				cellList, err := appExaminer.ListCells()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(cellList).To(HaveLen(5))
+				Expect(cellList).To(HaveLen(6))
 
 				cell1 := cellList[0]
-				Expect(cell1.CellID).To(Equal("east-01"))
+				Expect(cell1.CellID).To(Equal("lattice-east-01"))
 				Expect(cell1.RunningInstances).To(Equal(2))
 				Expect(cell1.ClaimedInstances).To(Equal(0))
 				Expect(cell1.Zone).To(Equal("z1"))
@@ -335,22 +336,28 @@ var _ = Describe("AppExaminer", func() {
 				Expect(cell2.Zone).To(Equal("z1"))
 
 				cell3 := cellList[2]
-				Expect(cell3.CellID).To(Equal("random-3"))
+				Expect(cell3.CellID).To(Equal("lattice-random-3"))
 				Expect(cell3.RunningInstances).To(Equal(0))
 				Expect(cell3.ClaimedInstances).To(Equal(0))
 				Expect(cell3.Zone).To(Equal("z2"))
 
 				cell4 := cellList[3]
-				Expect(cell4.CellID).To(Equal("cell-10"))
+				Expect(cell4.CellID).To(Equal("lattice-cell-10"))
 				Expect(cell4.RunningInstances).To(Equal(2))
 				Expect(cell4.ClaimedInstances).To(Equal(0))
 				Expect(cell4.Zone).To(Equal("z10"))
 
 				cell5 := cellList[4]
-				Expect(cell5.CellID).To(Equal("Jamesbond"))
+				Expect(cell5.CellID).To(Equal("lattice-ReallyBig-10000000"))
 				Expect(cell5.RunningInstances).To(Equal(0))
 				Expect(cell5.ClaimedInstances).To(Equal(0))
-				Expect(cell5.Zone).To(Equal("z9"))
+				Expect(cell5.Zone).To(Equal("z11"))
+
+				cell6 := cellList[5]
+				Expect(cell6.CellID).To(Equal("lattice-Jamesbond"))
+				Expect(cell6.RunningInstances).To(Equal(0))
+				Expect(cell6.ClaimedInstances).To(Equal(0))
+				Expect(cell6.Zone).To(Equal("z9"))
 
 			})
 		})

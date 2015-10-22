@@ -2,6 +2,7 @@ package app_examiner
 
 import (
 	"errors"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -405,7 +406,7 @@ func sortCellKeys(allCells map[string]*CellInfo) []CellKeyNumeric {
 	keys := make([]CellKeyNumeric, 0, len(allCells))
 
 	for key := range allCells {
-		index1 := 999999
+		index1 := math.MaxInt64
 		if a := strings.LastIndex(key, "-"); a != -1 {
 			s1 := key[a+1 : len(key)]
 			if cellIndexInt, err := strconv.Atoi(s1); err == nil {
