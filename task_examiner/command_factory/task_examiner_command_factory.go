@@ -27,7 +27,7 @@ func (factory *TaskExaminerCommandFactory) MakeTaskCommand() cli.Command {
 		Name:        "task",
 		Aliases:     []string{"tk"},
 		Usage:       "Displays the status of a given task",
-		Description: "ltc task TASK_NAME",
+		Description: "ltc task TASK_GUID",
 		Action:      factory.task,
 		Flags:       []cli.Flag{},
 	}
@@ -38,7 +38,7 @@ func (factory *TaskExaminerCommandFactory) MakeTaskCommand() cli.Command {
 func (factory *TaskExaminerCommandFactory) task(context *cli.Context) {
 	taskName := context.Args().First()
 	if taskName == "" {
-		factory.ui.SayIncorrectUsage("")
+		factory.ui.SayIncorrectUsage("Please input a valid TASK_GUID")
 		factory.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -57,7 +57,7 @@ func (factory *TaskExaminerCommandFactory) task(context *cli.Context) {
 
 	w := tabwriter.NewWriter(factory.ui, 9, 8, 1, '\t', 0)
 
-	fmt.Fprintf(w, "%s\t%s\n", "Task Name", taskInfo.TaskGuid)
+	fmt.Fprintf(w, "%s\t%s\n", "Task GUID", taskInfo.TaskGuid)
 	fmt.Fprintf(w, "%s\t%s\n", "Cell ID", taskInfo.CellID)
 	if taskInfo.State == "PENDING" || taskInfo.State == "CLAIMED" || taskInfo.State == "RUNNING" {
 		fmt.Fprintf(w, "%s\t%s\n", "Status", colors.Yellow(taskInfo.State))
