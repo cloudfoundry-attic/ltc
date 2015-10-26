@@ -16,8 +16,6 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-const latticeCliHomeVar = "LATTICE_CLI_HOME"
-
 var latticeVersion, diegoVersion string // provided by linker argument at compile-time
 
 func NewCliApp() *cli.App {
@@ -58,9 +56,22 @@ func logger() lager.Logger {
 }
 
 func ltcConfigRoot() string {
-	if os.Getenv(latticeCliHomeVar) != "" {
-		return os.Getenv(latticeCliHomeVar)
+	var homeVar string
+
+	homeVar = os.Getenv("LATTICE_CLI_HOME")
+	if homeVar != "" {
+		return homeVar
 	}
 
-	return os.Getenv("HOME")
+	homeVar = os.Getenv("HOME")
+	if homeVar != "" {
+		return homeVar
+	}
+
+	homeVar = os.Getenv("USERPROFILE")
+	if homeVar != "" {
+		return homeVar
+	}
+
+	return ""
 }
