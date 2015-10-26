@@ -1,4 +1,4 @@
-package autoupdate_test
+package version_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAutoupdate(t *testing.T) {
+func TestVersion(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Autoupdate Suite")
 }

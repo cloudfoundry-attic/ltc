@@ -5,14 +5,14 @@ import (
 	"os"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/ltc/autoupdate"
+	"github.com/cloudfoundry-incubator/ltc/version"
 )
 
 type FakeFileSwapper struct {
 	GetTempFileStub        func() (*os.File, error)
 	getTempFileMutex       sync.RWMutex
 	getTempFileArgsForCall []struct{}
-	getTempFileReturns     struct {
+	getTempFileReturns struct {
 		result1 *os.File
 		result2 error
 	}
@@ -85,4 +85,4 @@ func (fake *FakeFileSwapper) SwapTempFileReturns(result1 error) {
 	}{result1}
 }
 
-var _ autoupdate.FileSwapper = new(FakeFileSwapper)
+var _ version.FileSwapper = new(FakeFileSwapper)

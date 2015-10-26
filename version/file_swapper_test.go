@@ -1,10 +1,10 @@
-package autoupdate_test
+package version_test
 
 import (
 	"io/ioutil"
 	"os"
 
-	"github.com/cloudfoundry-incubator/ltc/autoupdate"
+	"github.com/cloudfoundry-incubator/ltc/version"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,7 +15,7 @@ var _ = Describe("FileSwapper", func() {
 		var (
 			srcPath        string
 			destPath       string
-			appFileSwapper *autoupdate.AppFileSwapper
+			appFileSwapper *version.AppFileSwapper
 		)
 
 		BeforeEach(func() {
@@ -37,7 +37,7 @@ var _ = Describe("FileSwapper", func() {
 
 			Expect(os.Chmod(destPath, 0755)).To(Succeed())
 
-			appFileSwapper = &autoupdate.AppFileSwapper{}
+			appFileSwapper = &version.AppFileSwapper{}
 		})
 
 		AfterEach(func() {

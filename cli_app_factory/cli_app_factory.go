@@ -11,7 +11,6 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/app_examiner"
 	"github.com/cloudfoundry-incubator/ltc/app_examiner/command_factory/graphical"
 	"github.com/cloudfoundry-incubator/ltc/app_runner"
-	"github.com/cloudfoundry-incubator/ltc/autoupdate"
 	"github.com/cloudfoundry-incubator/ltc/blob_store"
 	"github.com/cloudfoundry-incubator/ltc/blob_store/dav_blob_store"
 	"github.com/cloudfoundry-incubator/ltc/blob_store/s3_blob_store"
@@ -32,6 +31,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/task_runner"
 	"github.com/cloudfoundry-incubator/ltc/terminal"
 	"github.com/cloudfoundry-incubator/ltc/terminal/password_reader"
+	"github.com/cloudfoundry-incubator/ltc/version"
 	"github.com/cloudfoundry/noaa"
 	"github.com/codegangsta/cli"
 	"github.com/kardianos/osext"
@@ -40,7 +40,6 @@ import (
 
 	app_examiner_command_factory "github.com/cloudfoundry-incubator/ltc/app_examiner/command_factory"
 	app_runner_command_factory "github.com/cloudfoundry-incubator/ltc/app_runner/command_factory"
-	autoupdate_command_factory "github.com/cloudfoundry-incubator/ltc/autoupdate/command_factory"
 	cluster_test_command_factory "github.com/cloudfoundry-incubator/ltc/cluster_test/command_factory"
 	config_command_factory "github.com/cloudfoundry-incubator/ltc/config/command_factory"
 	docker_runner_command_factory "github.com/cloudfoundry-incubator/ltc/docker_runner/command_factory"
@@ -49,6 +48,7 @@ import (
 	ssh_command_factory "github.com/cloudfoundry-incubator/ltc/ssh/command_factory"
 	task_examiner_command_factory "github.com/cloudfoundry-incubator/ltc/task_examiner/command_factory"
 	task_runner_command_factory "github.com/cloudfoundry-incubator/ltc/task_runner/command_factory"
+	version_command_factory "github.com/cloudfoundry-incubator/ltc/version/command_factory"
 )
 
 var (
@@ -94,7 +94,7 @@ OPTIONS:
 
 func MakeCliApp(
 	diegoVersion string,
-	latticeVersion string,
+	ltcVersion string,
 	ltcConfigRoot string,
 	exitHandler exit_handler.ExitHandler,
 	config *config.Config,
@@ -107,7 +107,7 @@ func MakeCliApp(
 	app := cli.NewApp()
 	app.Name = AppName
 	app.Author = latticeCliAuthor
-	app.Version = defaultVersion(diegoVersion, latticeVersion)
+	app.Version = defaultVersion(diegoVersion, ltcVersion)
 	app.Usage = LtcUsage
 	app.Email = "cf-lattice@lists.cloudfoundry.org"
 
@@ -141,11 +141,11 @@ func MakeCliApp(
 		ui.SayLine(fmt.Sprintf(unknownCommand, command))
 		exitHandler.Exit(1)
 	}
-	app.Commands = cliCommands(ltcConfigRoot, exitHandler, config, logger, receptorClientCreator, targetVerifier, ui)
+	app.Commands = cliCommands(ltcConfigRoot, exitHandler, config, logger, receptorClientCreator, targetVerifier, ui, ltcVersion)
 	return app
 }
 
-func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, config *config.Config, logger lager.Logger, receptorClientCreator receptor_client.Creator, targetVerifier target_verifier.TargetVerifier, ui terminal.UI) []cli.Command {
+func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, config *config.Config, logger lager.Logger, receptorClientCreator receptor_client.Creator, targetVerifier target_verifier.TargetVerifier, ui terminal.UI, ltcVersion string) []cli.Command {
 	receptorClient := receptorClientCreator.CreateReceptorClient(config.Receptor())
 	noaaConsumer := noaa.NewConsumer(LoggregatorUrl(config.Loggregator()), nil, nil)
 	appRunner := app_runner.New(receptorClient, config.Target(), &keygen_package.KeyGenerator{RandReader: rand.Reader})
@@ -218,7 +218,7 @@ func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, con
 	sshCommandFactory := ssh_command_factory.NewSSHCommandFactory(config, ui, exitHandler, appExaminer, ssh.New(exitHandler))
 
 	ltcPath, _ := osext.Executable()
-	syncCommandFactory := autoupdate_command_factory.NewSyncCommandFactory(config, ui, exitHandler, runtime.GOOS, ltcPath, autoupdate.NewSync(&autoupdate.AppFileSwapper{}))
+	versionCommandFactory := version_command_factory.NewVersionCommandFactory(config, ui, exitHandler, runtime.GOOS, ltcPath, defaultLtcVersion(ltcVersion), version.NewVersionManager(receptorClient, &version.AppFileSwapper{}))
 
 	helpCommand := cli.Command{
 		Name:        "help",
@@ -253,7 +253,8 @@ func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, con
 		dropletRunnerCommandFactory.MakeImportDropletCommand(),
 		dropletRunnerCommandFactory.MakeExportDropletCommand(),
 		sshCommandFactory.MakeSSHCommand(),
-		syncCommandFactory.MakeSyncCommand(),
+		versionCommandFactory.MakeSyncCommand(),
+		versionCommandFactory.MakeVersionCommand(),
 		helpCommand,
 	}
 }
@@ -262,16 +263,21 @@ func LoggregatorUrl(loggregatorTarget string) string {
 	return "ws://" + loggregatorTarget
 }
 
-func defaultVersion(diegoVersion, latticeVersion string) string {
+func defaultDiegoVersion(diegoVersion string) string {
 	if diegoVersion == "" {
 		diegoVersion = "unknown"
 	}
-
-	if latticeVersion == "" {
-		latticeVersion = "development (not versioned)"
+	return diegoVersion
+}
+func defaultLtcVersion(ltcVersion string) string {
+	if ltcVersion == "" {
+		ltcVersion = "development (not versioned)"
 	}
+	return ltcVersion
+}
 
-	return fmt.Sprintf("%s (diego %s)", latticeVersion, diegoVersion)
+func defaultVersion(diegoVersion, ltcVersion string) string {
+	return fmt.Sprintf("%s (diego %s)", defaultLtcVersion(ltcVersion), defaultDiegoVersion(diegoVersion))
 }
 
 func appHelpTemplate() string {

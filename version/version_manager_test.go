@@ -1,4 +1,4 @@
-package autoupdate_test
+package version_test
 
 import (
 	"errors"
@@ -12,18 +12,20 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	"github.com/cloudfoundry-incubator/ltc/autoupdate"
-	"github.com/cloudfoundry-incubator/ltc/autoupdate/mocks"
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
+	"github.com/cloudfoundry-incubator/ltc/version"
+	"github.com/cloudfoundry-incubator/ltc/version/mocks"
+	"github.com/cloudfoundry-incubator/receptor"
+	"github.com/cloudfoundry-incubator/receptor/fake_receptor"
 )
 
-var _ = Describe("Sync", func() {
+var _ = Describe("VersionManager", func() {
 	var (
-		fakeFileSwapper *mocks.FakeFileSwapper
-
-		fakeServer *ghttp.Server
-		config     *config_package.Config
-		sync       *autoupdate.Sync
+		fakeFileSwapper    *mocks.FakeFileSwapper
+		fakeServer         *ghttp.Server
+		config             *config_package.Config
+		versionManager     *version.VersionManager
+		fakeReceptorClient *fake_receptor.FakeClient
 
 		ltcTempFile *os.File
 	)
@@ -41,13 +43,51 @@ var _ = Describe("Sync", func() {
 		ltcTempFile, err = ioutil.TempFile("", "fake-ltc")
 		Expect(err).NotTo(HaveOccurred())
 
+		fakeReceptorClient = &fake_receptor.FakeClient{}
+
 		config = config_package.New(nil)
 		config.SetTarget(fakeServerHost + ".xip.io:" + fakeServerPort)
-		sync = autoupdate.NewSync(fakeFileSwapper)
+		versionManager = version.NewVersionManager(fakeReceptorClient, fakeFileSwapper)
 	})
 
 	AfterEach(func() {
 		Expect(os.Remove(ltcTempFile.Name())).To(Succeed())
+	})
+
+	Describe("ServerVersions", func() {
+		It("should fetch versions from receptor", func() {
+			fakeReceptorClient.GetVersionReturns(receptor.VersionResponse{
+				CfRelease:           "v219",
+				CfRoutingRelease:    "v220",
+				DiegoRelease:        "v221",
+				GardenLinuxRelease:  "v222",
+				LatticeRelease:      "v223",
+				LatticeReleaseImage: "v224",
+				Ltc:                 "v225",
+				Receptor:            "v226",
+			}, nil)
+			serverVersions, _ := versionManager.ServerVersions()
+			Expect(serverVersions).To(Equal(version.ServerVersions{
+				CfRelease:           "v219",
+				CfRoutingRelease:    "v220",
+				DiegoRelease:        "v221",
+				GardenLinuxRelease:  "v222",
+				LatticeRelease:      "v223",
+				LatticeReleaseImage: "v224",
+				Ltc:                 "v225",
+				Receptor:            "v226",
+			}))
+		})
+
+		Context("when call to receptor fails", func() {
+			It("should return the error", func() {
+				err := errors.New("error")
+				fakeReceptorClient.GetVersionReturns(receptor.VersionResponse{}, err)
+
+				_, actualError := versionManager.ServerVersions()
+				Expect(actualError).To(Equal(err))
+			})
+		})
 	})
 
 	Describe("#SyncLTC", func() {
@@ -65,7 +105,7 @@ var _ = Describe("Sync", func() {
 
 			fakeFileSwapper.GetTempFileReturns(tmpFile, nil)
 
-			sync.SyncLTC(ltcTempFile.Name(), "amiga", config)
+			versionManager.SyncLTC(ltcTempFile.Name(), "amiga", config)
 
 			Expect(fakeServer.ReceivedRequests()).To(HaveLen(1))
 
@@ -90,7 +130,7 @@ var _ = Describe("Sync", func() {
 					ghttp.RespondWith(500, "", nil),
 				))
 
-				err := sync.SyncLTC(ltcTempFile.Name(), "amiga", config)
+				err := versionManager.SyncLTC(ltcTempFile.Name(), "amiga", config)
 				Expect(err).To(MatchError(HavePrefix("failed to download ltc")))
 			})
 		})
@@ -99,7 +139,7 @@ var _ = Describe("Sync", func() {
 			It("should return an error", func() {
 				config.SetTarget("localhost:1")
 
-				err := sync.SyncLTC(ltcTempFile.Name(), "amiga", config)
+				err := versionManager.SyncLTC(ltcTempFile.Name(), "amiga", config)
 				Expect(err).To(MatchError(HavePrefix("failed to connect to receptor")))
 			})
 		})
@@ -115,7 +155,7 @@ var _ = Describe("Sync", func() {
 
 				fakeFileSwapper.GetTempFileReturns(nil, errors.New("boom"))
 
-				err := sync.SyncLTC(ltcTempFile.Name(), "amiga", config)
+				err := versionManager.SyncLTC(ltcTempFile.Name(), "amiga", config)
 				Expect(err).To(MatchError("failed to open temp file: boom"))
 			})
 		})
@@ -137,7 +177,7 @@ var _ = Describe("Sync", func() {
 
 				fakeFileSwapper.GetTempFileReturns(tmpFile, nil)
 
-				err = sync.SyncLTC(ltcTempFile.Name(), "amiga", config)
+				err = versionManager.SyncLTC(ltcTempFile.Name(), "amiga", config)
 				Expect(err).To(MatchError(HavePrefix("failed to write to temp ltc")))
 			})
 		})
@@ -158,7 +198,7 @@ var _ = Describe("Sync", func() {
 				fakeFileSwapper.GetTempFileReturns(tmpFile, nil)
 				fakeFileSwapper.SwapTempFileReturns(errors.New("failed"))
 
-				err = sync.SyncLTC(ltcTempFile.Name(), "amiga", config)
+				err = versionManager.SyncLTC(ltcTempFile.Name(), "amiga", config)
 				Expect(err).To(MatchError(HavePrefix("failed to swap ltc")))
 			})
 		})

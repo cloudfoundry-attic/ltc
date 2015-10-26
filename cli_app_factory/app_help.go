@@ -70,6 +70,14 @@ func newAppPresenter(app *cli.App) (presenter appPresenter) {
 				},
 			},
 		}, {
+			Name: "LTC VERSION",
+			CommandSubGroups: [][]cmdPresenter{
+				{
+					presentCommand("version"),
+					presentCommand("sync"),
+				},
+			},
+		}, {
 			Name: "MANAGE DOCKER APPS",
 			CommandSubGroups: [][]cmdPresenter{
 				{
@@ -128,13 +136,6 @@ func newAppPresenter(app *cli.App) (presenter appPresenter) {
 			CommandSubGroups: [][]cmdPresenter{
 				{
 					presentCommand("ssh"),
-				},
-			},
-		}, {
-			Name: "SYNC LTC",
-			CommandSubGroups: [][]cmdPresenter{
-				{
-					presentCommand("sync"),
 				},
 			},
 		}, {
