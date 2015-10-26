@@ -3,6 +3,7 @@ package task_runner_test
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,6 +14,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/task_runner"
 	"github.com/cloudfoundry-incubator/receptor"
 	"github.com/cloudfoundry-incubator/receptor/fake_receptor"
+	"github.com/pivotal-golang/clock/fakeclock"
 )
 
 var _ = Describe("TaskRunner", func() {
@@ -20,12 +22,16 @@ var _ = Describe("TaskRunner", func() {
 		fakeReceptorClient *fake_receptor.FakeClient
 		taskRunner         task_runner.TaskRunner
 		fakeTaskExaminer   *fake_task_examiner.FakeTaskExaminer
+		fakeClock          *fakeclock.FakeClock
 	)
 
 	BeforeEach(func() {
 		fakeReceptorClient = &fake_receptor.FakeClient{}
 		fakeTaskExaminer = &fake_task_examiner.FakeTaskExaminer{}
-		taskRunner = task_runner.New(fakeReceptorClient, fakeTaskExaminer)
+		location, err := time.LoadLocation("Africa/Djibouti")
+		Expect(err).NotTo(HaveOccurred())
+		fakeClock = fakeclock.NewFakeClock(time.Date(2012, time.February, 29, 6, 45, 30, 820, location))
+		taskRunner = task_runner.New(fakeReceptorClient, fakeTaskExaminer, fakeClock)
 	})
 
 	Describe("CreateTask", func() {
@@ -377,15 +383,25 @@ var _ = Describe("TaskRunner", func() {
 				fakeTaskExaminer.TaskStatusReturns(getTaskStatus(receptor.TaskStateCompleted), nil)
 				fakeReceptorClient.DeleteTaskReturns(errors.New("task in unknown state"))
 
-				err := taskRunner.DeleteTask("task-guid-1")
-				Expect(err).To(MatchError("task in unknown state"))
+				errChan := make(chan error)
+				go func() {
+					errChan <- taskRunner.DeleteTask("task-guid-1")
+				}()
+				Eventually(fakeClock.WatcherCount).Should(Equal(2))
+				fakeClock.IncrementBySeconds(1)
+				Expect(<-errChan).To(MatchError("task in unknown state"))
 			})
 
 			It("returns error when timeout to delete the task", func() {
 				fakeTaskExaminer.TaskStatusReturns(getTaskStatus(receptor.TaskStateRunning), nil)
+				errChan := make(chan error)
+				go func() {
+					errChan <- taskRunner.DeleteTask("task-guid-1")
+				}()
 
-				err := taskRunner.DeleteTask("task-guid-1")
-				Expect(err).To(MatchError("Delete Task failed: task cancellation timed out"))
+				Eventually(fakeClock.WatcherCount).Should(Equal(2))
+				fakeClock.IncrementBySeconds(31)
+				Expect(<-errChan).To(MatchError("Delete Task failed: task cancellation timed out"))
 			})
 		})
 
@@ -395,8 +411,13 @@ var _ = Describe("TaskRunner", func() {
 				fakeReceptorClient.CancelTaskReturns(errors.New("task in unknown state"))
 				fakeTaskExaminer.TaskStatusReturns(getTaskStatus(receptor.TaskStateCompleted), nil)
 
-				err := taskRunner.DeleteTask("task-guid-1")
-				Expect(err).ToNot(HaveOccurred())
+				errChan := make(chan error)
+				go func() {
+					errChan <- taskRunner.DeleteTask("task-guid-1")
+				}()
+				Eventually(fakeClock.WatcherCount).Should(Equal(2))
+				fakeClock.IncrementBySeconds(1)
+				Expect(<-errChan).NotTo(HaveOccurred())
 			})
 		})
 	})

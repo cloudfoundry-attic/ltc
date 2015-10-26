@@ -9,6 +9,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/logs/reserved_app_ids"
 	"github.com/cloudfoundry-incubator/ltc/task_examiner"
 	"github.com/cloudfoundry-incubator/receptor"
+	"github.com/pivotal-golang/clock"
 )
 
 const (
@@ -28,10 +29,11 @@ type TaskRunner interface {
 type taskRunner struct {
 	receptorClient receptor.Client
 	taskExaminer   task_examiner.TaskExaminer
+	clock          clock.Clock
 }
 
-func New(receptorClient receptor.Client, taskExaminer task_examiner.TaskExaminer) TaskRunner {
-	return &taskRunner{receptorClient, taskExaminer}
+func New(receptorClient receptor.Client, taskExaminer task_examiner.TaskExaminer, clock clock.Clock) TaskRunner {
+	return &taskRunner{receptorClient, taskExaminer, clock}
 }
 
 func (taskRunner *taskRunner) CreateTask(createTaskParams CreateTaskParams) error {
@@ -89,24 +91,18 @@ func (e *taskRunner) DeleteTask(taskGuid string) error {
 
 	/*Ignoring the error of cancel task */
 	e.receptorClient.CancelTask(taskGuid)
-	ticker := time.NewTicker(time.Second * 1)
-	count := 0
-	defer ticker.Stop()
 
+	timeout := e.clock.NewTimer(30 * time.Second)
 	for {
 		select {
-		case <-ticker.C:
+		case <-timeout.C():
+			return errors.New("Delete Task failed: task cancellation timed out")
+		case <-e.clock.NewTimer(1 * time.Second).C():
 			taskInfo, err := e.taskExaminer.TaskStatus(taskGuid)
 			if err == nil && taskInfo.State == receptor.TaskStateCompleted {
 				err := e.receptorClient.DeleteTask(taskGuid)
 				return err
 			}
-
-			count++
-			if count == 30 {
-				return errors.New("Delete Task failed: task cancellation timed out")
-			}
-
 		}
 	}
 }
