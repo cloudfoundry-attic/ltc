@@ -23,7 +23,7 @@ type FakeVersionManager struct {
 	ServerVersionsStub        func() (version.ServerVersions, error)
 	serverVersionsMutex       sync.RWMutex
 	serverVersionsArgsForCall []struct{}
-	serverVersionsReturns struct {
+	serverVersionsReturns     struct {
 		result1 version.ServerVersions
 		result2 error
 	}
