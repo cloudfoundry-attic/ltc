@@ -27,7 +27,6 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/config"
 	"github.com/cloudfoundry-incubator/ltc/terminal/colors"
 	"github.com/cloudfoundry-incubator/ltc/test_helpers"
-	"github.com/nu7hatch/gouuid"
 )
 
 var numCPU int
