@@ -31,6 +31,7 @@ func (zipper *DropletArtifactZipper) Zip(srcDir string, cfIgnore cf_ignore.CFIgn
 	if err != nil {
 		return "", err
 	}
+	defer fileWriter.Close()
 
 	zipWriter := zip.NewWriter(fileWriter)
 	defer zipWriter.Close()
@@ -45,6 +46,8 @@ func (zipper *DropletArtifactZipper) Zip(srcDir string, cfIgnore cf_ignore.CFIgn
 	}
 
 	if ignoreFile, err := os.Open(filepath.Join(srcDir, ".cfignore")); err == nil {
+		defer ignoreFile.Close()
+
 		if err := cfIgnore.Parse(ignoreFile); err != nil {
 			return "", err
 		}
@@ -69,7 +72,7 @@ func (zipper *DropletArtifactZipper) Zip(srcDir string, cfIgnore cf_ignore.CFIgn
 		}
 
 		if h, err := zip.FileInfoHeader(info); err == nil {
-			h.Name = relativePath
+			h.Name = filepath.ToSlash(relativePath)
 
 			if info.IsDir() {
 				h.Name = h.Name + "/"

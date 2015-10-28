@@ -49,6 +49,8 @@ var _ = Describe("FileSwapper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			destFile, err := os.OpenFile(destPath, os.O_RDONLY, 0)
+			defer destFile.Close()
+
 			Expect(err).NotTo(HaveOccurred())
 
 			bytes, err := ioutil.ReadAll(destFile)

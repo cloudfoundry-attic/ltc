@@ -212,6 +212,7 @@ var _ = Describe("Zipper", func() {
 		})
 
 		AfterEach(func() {
+			tmpFile.Close()
 			os.Remove(tmpFile.Name())
 			syscall.Umask(prevUmask)
 		})
@@ -273,7 +274,10 @@ var _ = Describe("Zipper", func() {
 			tmpFile, err := ioutil.TempFile(os.TempDir(), "emptyzip")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ioutil.WriteFile(tmpFile.Name(), minimalZipBytes, 0700)).To(Succeed())
-			defer os.Remove(tmpFile.Name())
+			defer func() {
+				tmpFile.Close()
+				os.Remove(tmpFile.Name())
+			}()
 
 			Expect(zipper.IsZipFile(tmpFile.Name())).To(BeTrue())
 		})
@@ -282,7 +286,10 @@ var _ = Describe("Zipper", func() {
 			tmpFile, err := ioutil.TempFile(os.TempDir(), "badzip")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ioutil.WriteFile(tmpFile.Name(), []byte("I promise I'm a zip file"), 0700)).To(Succeed())
-			defer os.Remove(tmpFile.Name())
+			defer func() {
+				tmpFile.Close()
+				os.Remove(tmpFile.Name())
+			}()
 
 			Expect(zipper.IsZipFile(tmpFile.Name())).To(BeFalse())
 		})

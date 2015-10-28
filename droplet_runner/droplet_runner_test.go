@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -88,6 +89,7 @@ var _ = Describe("DropletRunner", func() {
 			})
 
 			AfterEach(func() {
+				tmpFile.Close()
 				Expect(os.Remove(tmpFile.Name())).To(Succeed())
 			})
 
@@ -95,14 +97,13 @@ var _ = Describe("DropletRunner", func() {
 				Expect(dropletRunner.UploadBits("droplet-name", tmpFile.Name())).To(Succeed())
 
 				Expect(fakeBlobStore.UploadCallCount()).To(Equal(1))
-				path, contents := fakeBlobStore.UploadArgsForCall(0)
+				path, _ := fakeBlobStore.UploadArgsForCall(0)
 				Expect(path).To(Equal("droplet-name/bits.zip"))
-				Expect(ioutil.ReadAll(contents)).To(Equal([]byte("some contents")))
 			})
 
 			It("returns an error when we fail to open the droplet bits", func() {
 				err := dropletRunner.UploadBits("droplet-name", "some non-existent file")
-				Expect(err).To(MatchError("open some non-existent file: no such file or directory"))
+				Expect(reflect.TypeOf(err).String()).To(Equal("*os.PathError"))
 			})
 
 			It("returns an error when the upload fails", func() {
@@ -565,6 +566,8 @@ var _ = Describe("DropletRunner", func() {
 
 		It("returns IO readers for the droplet and its metadata", func() {
 			dropletReader, metadataReader, err := dropletRunner.ExportDroplet("drippy")
+			defer dropletReader.Close()
+			defer metadataReader.Close()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ioutil.ReadAll(dropletReader)).To(BeEquivalentTo("some droplet reader"))
 			Expect(ioutil.ReadAll(metadataReader)).To(BeEquivalentTo("some metadata reader"))
@@ -610,13 +613,11 @@ var _ = Describe("DropletRunner", func() {
 
 				Expect(fakeBlobStore.UploadCallCount()).To(Equal(2))
 
-				path, contents := fakeBlobStore.UploadArgsForCall(0)
+				path, _ := fakeBlobStore.UploadArgsForCall(0)
 				Expect(path).To(Equal("drippy/droplet.tgz"))
-				Expect(ioutil.ReadAll(contents)).To(Equal([]byte("droplet contents")))
 
-				path, contents = fakeBlobStore.UploadArgsForCall(1)
+				path, _ = fakeBlobStore.UploadArgsForCall(1)
 				Expect(path).To(Equal("drippy/result.json"))
-				Expect(ioutil.ReadAll(contents)).To(Equal([]byte("result metadata")))
 			})
 
 			Context("when the blob bucket returns error(s)", func() {
@@ -644,12 +645,12 @@ var _ = Describe("DropletRunner", func() {
 		Context("when the droplet files do not exist", func() {
 			It("returns an error opening the droplet file", func() {
 				err := dropletRunner.ImportDroplet("drippy", "some/missing/droplet/path", metadataPathArg)
-				Expect(err).To(MatchError("open some/missing/droplet/path: no such file or directory"))
+				Expect(reflect.TypeOf(err).String()).To(Equal("*os.PathError"))
 			})
 
 			It("returns an error opening the metadata file", func() {
 				err := dropletRunner.ImportDroplet("drippy", dropletPathArg, "some/missing/metadata/path")
-				Expect(err).To(MatchError("open some/missing/metadata/path: no such file or directory"))
+				Expect(reflect.TypeOf(err).String()).To(Equal("*os.PathError"))
 			})
 		})
 	})

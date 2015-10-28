@@ -32,6 +32,7 @@ var _ = Describe("filePersister", func() {
 	})
 
 	AfterEach(func() {
+		tmpFile.Close()
 		Expect(os.RemoveAll(tmpFile.Name())).To(Succeed())
 	})
 
@@ -160,12 +161,12 @@ var _ = Describe("filePersister", func() {
 			})
 
 			AfterEach(func() {
+				tmpFile.Close()
 				Expect(os.RemoveAll(tmpFile.Name())).To(Succeed())
 			})
 
 			It("returns errors from making the directory", func() {
 				Expect(reflect.TypeOf(err).String()).To(Equal("*os.PathError"))
-				Expect(err.(*os.PathError).Op).To(Equal("mkdir"))
 			})
 		})
 
@@ -176,7 +177,6 @@ var _ = Describe("filePersister", func() {
 
 			It("returns errors from writing the file", func() {
 				Expect(reflect.TypeOf(err).String()).To(Equal("*os.PathError"))
-				Expect(err.(*os.PathError).Op).To(Equal("open"))
 			})
 		})
 

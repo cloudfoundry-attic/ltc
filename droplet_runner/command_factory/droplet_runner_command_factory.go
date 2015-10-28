@@ -637,6 +637,7 @@ func (factory *DropletRunnerCommandFactory) exportDroplet(context *cli.Context) 
 		factory.ExitHandler.Exit(exit_codes.CommandFailed)
 		return
 	}
+	defer dropletWriter.Close()
 
 	_, err = io.Copy(dropletWriter, dropletReader)
 	if err != nil {
@@ -658,6 +659,7 @@ func (factory *DropletRunnerCommandFactory) exportDroplet(context *cli.Context) 
 		factory.ExitHandler.Exit(exit_codes.CommandFailed)
 		return
 	}
+	defer dropletWriter.Close()
 
 	factory.UI.SayLine(fmt.Sprintf("Droplet '%s' exported to %s and %s.", dropletName, dropletPath, metadataPath))
 }
