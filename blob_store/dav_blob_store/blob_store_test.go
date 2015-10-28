@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
@@ -339,7 +340,8 @@ var _ = Describe("BlobStore", func() {
 				fakeServer = nil
 
 				_, err := blobStore.List()
-				Expect(err).To(HaveOccurred())
+				Expect(reflect.TypeOf(err).String()).To(Equal("*net.OpError"))
+				Expect(err.(*net.OpError).Op).To(Equal("dial"))
 			})
 
 			It("returns an error when we fail to retrieve the objects from DAV", func() {
@@ -418,7 +420,8 @@ var _ = Describe("BlobStore", func() {
 				))
 
 				_, err := blobStore.List()
-				Expect(err).To(HaveOccurred())
+				Expect(reflect.TypeOf(err).String()).To(Equal("*net.OpError"))
+				Expect(err.(*net.OpError).Op).To(Equal("dial"))
 			})
 
 			It("returns an error when we fail to retrieve the objects from DAV", func() {
@@ -671,7 +674,8 @@ var _ = Describe("BlobStore", func() {
 			fakeServer = nil
 
 			err := blobStore.Upload("some-path/some-object", strings.NewReader("some data"))
-			Expect(err).To(MatchError(ContainSubstring("connection refused")))
+			Expect(reflect.TypeOf(err).String()).To(Equal("*net.OpError"))
+			Expect(err.(*net.OpError).Op).To(Equal("dial"))
 		})
 
 		It("returns an error when MKCOL is required but fails", func() {
@@ -717,7 +721,8 @@ var _ = Describe("BlobStore", func() {
 			fakeServer = nil
 
 			_, err := blobStore.Download("some-path/some-object")
-			Expect(err).To(MatchError(ContainSubstring("connection refused")))
+			Expect(reflect.TypeOf(err).String()).To(Equal("*url.Error"))
+			Expect(err.(*url.Error).Op).To(Equal("Get"))
 		})
 	})
 
@@ -748,7 +753,8 @@ var _ = Describe("BlobStore", func() {
 			fakeServer = nil
 
 			err := blobStore.Delete("some-path/some-object")
-			Expect(err).To(MatchError(ContainSubstring("connection refused")))
+			Expect(reflect.TypeOf(err).String()).To(Equal("*net.OpError"))
+			Expect(err.(*net.OpError).Op).To(Equal("dial"))
 		})
 	})
 
