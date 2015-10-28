@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"reflect"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -73,7 +72,7 @@ var _ = Describe("filePersister", func() {
 			})
 
 			It("returns errors from invalid JSON", func() {
-				Expect(reflect.TypeOf(err).String()).To(Equal("*json.SyntaxError"))
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
@@ -84,7 +83,7 @@ var _ = Describe("filePersister", func() {
 			})
 
 			It("returns errors from reading the file", func() {
-				Expect(reflect.TypeOf(err).String()).To(Equal("*json.SyntaxError"))
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
@@ -126,7 +125,7 @@ var _ = Describe("filePersister", func() {
 
 		It("Returns an error rather than save invalid JSON", func() {
 			err := filePersister.Save(func() {})
-			Expect(reflect.TypeOf(err).String()).To(Equal("*json.UnsupportedTypeError"))
+			Expect(err).To(MatchError(ContainSubstring("unsupported type")))
 		})
 
 		Context("when reading nonexistant files", func() {
@@ -164,8 +163,7 @@ var _ = Describe("filePersister", func() {
 			})
 
 			It("returns errors from making the directory", func() {
-				Expect(reflect.TypeOf(err).String()).To(Equal("*os.PathError"))
-				Expect(err.(*os.PathError).Op).To(Equal("mkdir"))
+				Expect(err).To(MatchError(ContainSubstring("not a directory")))
 			})
 		})
 
@@ -175,8 +173,7 @@ var _ = Describe("filePersister", func() {
 			})
 
 			It("returns errors from writing the file", func() {
-				Expect(reflect.TypeOf(err).String()).To(Equal("*os.PathError"))
-				Expect(err.(*os.PathError).Op).To(Equal("open"))
+				Expect(err).To(MatchError(ContainSubstring("is a directory")))
 			})
 		})
 

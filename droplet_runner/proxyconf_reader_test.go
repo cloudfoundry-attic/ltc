@@ -2,8 +2,6 @@ package droplet_runner_test
 
 import (
 	"net/http"
-	"net/url"
-	"reflect"
 
 	"github.com/cloudfoundry-incubator/ltc/droplet_runner"
 	. "github.com/onsi/ginkgo"
@@ -96,8 +94,7 @@ var _ = Describe("HTTPProxyConfReader", func() {
 			proxyConfReader.URL = badURL
 
 			_, err := proxyConfReader.ProxyConf()
-			Expect(reflect.TypeOf(err).String()).To(Equal("*url.Error"))
-			Expect(err.(*url.Error).Op).To(Equal("Get"))
+			Expect(err).To(MatchError(ContainSubstring("connection refused")))
 
 			Expect(fakeServer.ReceivedRequests()).To(HaveLen(0))
 		})

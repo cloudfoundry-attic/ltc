@@ -2,6 +2,7 @@ package command_factory_test
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -281,7 +282,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 				args := []string{"file-no-existy"}
 				test_helpers.ExecuteCommandWithArgs(submitLrpCommand, args)
 
-				Expect(outputBuffer).To(test_helpers.Say("Error reading file: open file-no-existy:"))
+				Expect(outputBuffer).To(test_helpers.SayLine(fmt.Sprintf("Error reading file: open %s: no such file or directory", "file-no-existy")))
 				Expect(fakeAppRunner.SubmitLrpCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.FileSystemError}))
 			})

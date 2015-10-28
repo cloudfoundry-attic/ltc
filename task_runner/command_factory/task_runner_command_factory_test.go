@@ -2,6 +2,7 @@ package command_factory_test
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -101,7 +102,7 @@ var _ = Describe("TaskRunner CommandFactory", func() {
 
 				test_helpers.ExecuteCommandWithArgs(submitTaskCommand, args)
 
-				Expect(outputBuffer).To(test_helpers.Say("Error reading file"))
+				Expect(outputBuffer).To(test_helpers.SayLine(fmt.Sprintf("Error reading file: open %s: no such file or directory", filepath.Join(os.TempDir(), "file-no-existy"))))
 				Expect(fakeTaskRunner.SubmitTaskCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.FileSystemError}))
 			})
