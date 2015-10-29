@@ -213,12 +213,13 @@ func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, con
 	zipper := &zipper_package.DropletArtifactZipper{}
 	dropletRunnerCommandFactory := droplet_runner_command_factory.NewDropletRunnerCommandFactory(*appRunnerCommandFactory, blobStoreVerifier, taskExaminer, dropletRunner, cfIgnore, zipper, config)
 
-	configCommandFactory := config_command_factory.NewConfigCommandFactory(config, ui, targetVerifier, blobStoreVerifier, exitHandler)
+	versionManager := version.NewVersionManager(receptorClient, &version.AppFileSwapper{}, defaultLtcVersion(ltcVersion))
+	configCommandFactory := config_command_factory.NewConfigCommandFactory(config, ui, targetVerifier, blobStoreVerifier, exitHandler, versionManager)
 
 	sshCommandFactory := ssh_command_factory.NewSSHCommandFactory(config, ui, exitHandler, appExaminer, ssh.New(exitHandler))
 
 	ltcPath, _ := osext.Executable()
-	versionCommandFactory := version_command_factory.NewVersionCommandFactory(config, ui, exitHandler, runtime.GOOS, ltcPath, defaultLtcVersion(ltcVersion), version.NewVersionManager(receptorClient, &version.AppFileSwapper{}))
+	versionCommandFactory := version_command_factory.NewVersionCommandFactory(config, ui, exitHandler, runtime.GOOS, ltcPath, versionManager)
 
 	helpCommand := cli.Command{
 		Name:        "help",

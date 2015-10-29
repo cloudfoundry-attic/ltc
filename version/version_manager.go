@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry-incubator/receptor"
 )
 
-//go:generate counterfeiter -o mocks/fake_file_swapper.go . FileSwapper
+//go:generate counterfeiter -o fake_file_swapper/fake_file_swapper.go . FileSwapper
 type FileSwapper interface {
 	GetTempFile() (*os.File, error)
 	SwapTempFile(destPath, srcPath string) error
@@ -27,19 +27,29 @@ type ServerVersions struct {
 	Receptor            string
 }
 
-type VersionManager struct {
-	receptorClient receptor.Client
-	fileSwapper    FileSwapper
+//go:generate counterfeiter -o fake_version_manager/fake_version_manager.go . VersionManager
+type VersionManager interface {
+	SyncLTC(ltcPath string, arch string, config *config_package.Config) error
+	ServerVersions() (ServerVersions, error)
+	LtcVersion() string
+	LtcMatchesServer() (bool, error)
 }
 
-func NewVersionManager(receptorClient receptor.Client, fileSwapper FileSwapper) *VersionManager {
-	return &VersionManager{
+type versionManager struct {
+	receptorClient receptor.Client
+	fileSwapper    FileSwapper
+	ltcVersion     string
+}
+
+func NewVersionManager(receptorClient receptor.Client, fileSwapper FileSwapper, ltcVersion string) *versionManager {
+	return &versionManager{
 		receptorClient,
 		fileSwapper,
+		ltcVersion,
 	}
 }
 
-func (v *VersionManager) ServerVersions() (ServerVersions, error) {
+func (v *versionManager) ServerVersions() (ServerVersions, error) {
 	versionResponse, err := v.receptorClient.GetVersion()
 	if err != nil {
 		return ServerVersions{}, err
@@ -56,7 +66,7 @@ func (v *VersionManager) ServerVersions() (ServerVersions, error) {
 	}, nil
 }
 
-func (s *VersionManager) SyncLTC(ltcPath string, arch string, config *config_package.Config) error {
+func (s *versionManager) SyncLTC(ltcPath string, arch string, config *config_package.Config) error {
 	response, err := http.DefaultClient.Get(fmt.Sprintf("%s/v1/sync/%s/ltc", config.Receptor(), arch))
 	if err != nil {
 		return fmt.Errorf("failed to connect to receptor: %s", err.Error())
@@ -82,4 +92,18 @@ func (s *VersionManager) SyncLTC(ltcPath string, arch string, config *config_pac
 	}
 
 	return nil
+}
+
+func (s *versionManager) LtcVersion() string {
+	return s.ltcVersion
+}
+
+func (s *versionManager) LtcMatchesServer() (bool, error) {
+	serverVersions, err := s.ServerVersions()
+	if err != nil {
+		return false, err
+	}
+
+	match := (serverVersions.Ltc == s.LtcVersion())
+	return match, nil
 }

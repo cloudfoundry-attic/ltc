@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/exit_handler"
 	"github.com/cloudfoundry-incubator/ltc/exit_handler/exit_codes"
 	"github.com/cloudfoundry-incubator/ltc/terminal"
+	"github.com/cloudfoundry-incubator/ltc/version"
 	"github.com/codegangsta/cli"
 )
 
@@ -17,6 +18,7 @@ type ConfigCommandFactory struct {
 	targetVerifier    target_verifier.TargetVerifier
 	blobStoreVerifier BlobStoreVerifier
 	exitHandler       exit_handler.ExitHandler
+	versionManager    version.VersionManager
 }
 
 //go:generate counterfeiter -o fake_blob_store_verifier/fake_blob_store_verifier.go . BlobStoreVerifier
@@ -24,8 +26,8 @@ type BlobStoreVerifier interface {
 	Verify(config *config.Config) (authorized bool, err error)
 }
 
-func NewConfigCommandFactory(config *config.Config, ui terminal.UI, targetVerifier target_verifier.TargetVerifier, blobStoreVerifier BlobStoreVerifier, exitHandler exit_handler.ExitHandler) *ConfigCommandFactory {
-	return &ConfigCommandFactory{config, ui, targetVerifier, blobStoreVerifier, exitHandler}
+func NewConfigCommandFactory(config *config.Config, ui terminal.UI, targetVerifier target_verifier.TargetVerifier, blobStoreVerifier BlobStoreVerifier, exitHandler exit_handler.ExitHandler, versionManager version.VersionManager) *ConfigCommandFactory {
+	return &ConfigCommandFactory{config, ui, targetVerifier, blobStoreVerifier, exitHandler, versionManager}
 }
 
 func (factory *ConfigCommandFactory) MakeTargetCommand() cli.Command {
@@ -94,6 +96,7 @@ func (factory *ConfigCommandFactory) target(context *cli.Context) {
 			return
 		}
 
+		factory.checkVersions()
 		factory.save()
 		return
 	}
@@ -122,6 +125,7 @@ func (factory *ConfigCommandFactory) target(context *cli.Context) {
 		return
 	}
 
+	factory.checkVersions()
 	factory.save()
 }
 
@@ -136,6 +140,18 @@ func (factory *ConfigCommandFactory) verifyBlobStore() bool {
 		return false
 	}
 	return true
+}
+
+func (f *ConfigCommandFactory) checkVersions() {
+	ltcMatchesServer, err := f.versionManager.LtcMatchesServer()
+	if !ltcMatchesServer {
+		f.ui.SayLine(fmt.Sprintf("WARNING: local ltc version (%s) does not match target expected version.", f.versionManager.LtcVersion()))
+
+		if err == nil {
+			f.ui.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version.")
+		}
+	}
+
 }
 
 func (factory *ConfigCommandFactory) save() {

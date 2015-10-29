@@ -14,24 +14,24 @@ import (
 
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
 	"github.com/cloudfoundry-incubator/ltc/version"
-	"github.com/cloudfoundry-incubator/ltc/version/mocks"
+	"github.com/cloudfoundry-incubator/ltc/version/fake_file_swapper"
 	"github.com/cloudfoundry-incubator/receptor"
 	"github.com/cloudfoundry-incubator/receptor/fake_receptor"
 )
 
 var _ = Describe("VersionManager", func() {
 	var (
-		fakeFileSwapper    *mocks.FakeFileSwapper
+		fakeFileSwapper    *fake_file_swapper.FakeFileSwapper
 		fakeServer         *ghttp.Server
 		config             *config_package.Config
-		versionManager     *version.VersionManager
+		versionManager     version.VersionManager
 		fakeReceptorClient *fake_receptor.FakeClient
 
 		ltcTempFile *os.File
 	)
 
 	BeforeEach(func() {
-		fakeFileSwapper = &mocks.FakeFileSwapper{}
+		fakeFileSwapper = &fake_file_swapper.FakeFileSwapper{}
 
 		fakeServer = ghttp.NewServer()
 		fakeServerURL, err := url.Parse(fakeServer.URL())
@@ -47,7 +47,7 @@ var _ = Describe("VersionManager", func() {
 
 		config = config_package.New(nil)
 		config.SetTarget(fakeServerHost + ".xip.io:" + fakeServerPort)
-		versionManager = version.NewVersionManager(fakeReceptorClient, fakeFileSwapper)
+		versionManager = version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "")
 	})
 
 	AfterEach(func() {
@@ -201,6 +201,42 @@ var _ = Describe("VersionManager", func() {
 
 				err = versionManager.SyncLTC(ltcTempFile.Name(), "amiga", config)
 				Expect(err).To(MatchError(HavePrefix("failed to swap ltc")))
+			})
+		})
+	})
+
+	Describe("#LtcVersion", func() {
+		It("should return its ltcVersion", func() {
+			versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "some-version")
+			Expect(versionManager.LtcVersion()).To(Equal("some-version"))
+		})
+	})
+
+	Describe("#LtcMatchesServer", func() {
+		BeforeEach(func() {
+			fakeReceptorClient.GetVersionReturns(receptor.VersionResponse{
+				CfRelease:           "v219",
+				CfRoutingRelease:    "v220",
+				DiegoRelease:        "v221",
+				GardenLinuxRelease:  "v222",
+				LatticeRelease:      "v223",
+				LatticeReleaseImage: "v224",
+				Ltc:                 "v225",
+				Receptor:            "v226",
+			}, nil)
+		})
+
+		Context("when the local ltc version matches the server's expected version", func() {
+			It("should return true", func() {
+				versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "v225")
+				Expect(versionManager.LtcMatchesServer()).To(BeTrue())
+			})
+		})
+
+		Context("when the local ltc version does not match the server's expected version", func() {
+			It("should return false", func() {
+				versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "mismatched-version")
+				Expect(versionManager.LtcMatchesServer()).To(BeFalse())
 			})
 		})
 	})

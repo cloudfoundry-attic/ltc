@@ -17,6 +17,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/terminal"
 	"github.com/cloudfoundry-incubator/ltc/terminal/password_reader/fake_password_reader"
 	"github.com/cloudfoundry-incubator/ltc/test_helpers"
+	"github.com/cloudfoundry-incubator/ltc/version/fake_version_manager"
 	"github.com/codegangsta/cli"
 
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
@@ -34,6 +35,7 @@ var _ = Describe("CommandFactory", func() {
 		fakeBlobStoreVerifier *fake_blob_store_verifier.FakeBlobStoreVerifier
 		fakeExitHandler       *fake_exit_handler.FakeExitHandler
 		fakePasswordReader    *fake_password_reader.FakePasswordReader
+		fakeVersionManager    *fake_version_manager.FakeVersionManager
 	)
 
 	BeforeEach(func() {
@@ -44,6 +46,7 @@ var _ = Describe("CommandFactory", func() {
 		terminalUI = terminal.NewUI(stdinReader, outputBuffer, fakePasswordReader)
 		fakeTargetVerifier = &fake_target_verifier.FakeTargetVerifier{}
 		fakeBlobStoreVerifier = &fake_blob_store_verifier.FakeBlobStoreVerifier{}
+		fakeVersionManager = &fake_version_manager.FakeVersionManager{}
 		configPersister = persister.NewMemPersister()
 		config = config_package.New(configPersister)
 	})
@@ -59,7 +62,7 @@ var _ = Describe("CommandFactory", func() {
 		}
 
 		BeforeEach(func() {
-			commandFactory := command_factory.NewConfigCommandFactory(config, terminalUI, fakeTargetVerifier, fakeBlobStoreVerifier, fakeExitHandler)
+			commandFactory := command_factory.NewConfigCommandFactory(config, terminalUI, fakeTargetVerifier, fakeBlobStoreVerifier, fakeExitHandler, fakeVersionManager)
 			targetCommand = commandFactory.MakeTargetCommand()
 
 			config.SetTarget("oldtarget.com")
@@ -249,7 +252,7 @@ var _ = Describe("CommandFactory", func() {
 
 			Context("when the persister returns errors", func() {
 				BeforeEach(func() {
-					commandFactory := command_factory.NewConfigCommandFactory(config_package.New(errorPersister("some error")), terminalUI, fakeTargetVerifier, fakeBlobStoreVerifier, fakeExitHandler)
+					commandFactory := command_factory.NewConfigCommandFactory(config_package.New(errorPersister("some error")), terminalUI, fakeTargetVerifier, fakeBlobStoreVerifier, fakeExitHandler, fakeVersionManager)
 					targetCommand = commandFactory.MakeTargetCommand()
 				})
 
@@ -473,6 +476,38 @@ var _ = Describe("CommandFactory", func() {
 
 				verifyOldTargetStillSet()
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.BadTarget}))
+			})
+		})
+
+		Context("checking ltc target version", func() {
+			BeforeEach(func() {
+				fakeTargetVerifier.VerifyTargetReturns(true, true, nil)
+				fakeBlobStoreVerifier.VerifyReturns(true, nil)
+				fakeVersionManager.LtcVersionReturns("some-version")
+			})
+
+			It("should print warning and recommend sync if ltc version does not match server", func() {
+				fakeVersionManager.LtcMatchesServerReturns(false, nil)
+
+				test_helpers.ExecuteCommandWithArgs(targetCommand, []string{"target.com"})
+				Expect(outputBuffer).To(test_helpers.SayLine("WARNING: local ltc version (some-version) does not match target expected version."))
+				Expect(outputBuffer).To(test_helpers.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version."))
+			})
+
+			It("should print warning and NOT recommend sync if ServerVersions endpoint fails", func() {
+				fakeVersionManager.LtcMatchesServerReturns(false, errors.New("whoops"))
+
+				test_helpers.ExecuteCommandWithArgs(targetCommand, []string{"target.com"})
+				Expect(outputBuffer).To(test_helpers.SayLine("WARNING: local ltc version (some-version) does not match target expected version."))
+				Expect(outputBuffer).NotTo(test_helpers.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version."))
+			})
+
+			It("should not print an error if ltc version matches server", func() {
+				fakeVersionManager.LtcMatchesServerReturns(true, nil)
+
+				test_helpers.ExecuteCommandWithArgs(targetCommand, []string{"target.com"})
+				Expect(outputBuffer).NotTo(test_helpers.SayLine("WARNING: local ltc version (some-version) does not match target expected version."))
+				Expect(outputBuffer).NotTo(test_helpers.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version."))
 			})
 		})
 	})

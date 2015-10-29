@@ -14,21 +14,20 @@ type VersionCommandFactory struct {
 	ui          terminal.UI
 	exitHandler exit_handler.ExitHandler
 
-	arch       string
-	ltcPath    string
-	ltcVersion string
+	arch    string
+	ltcPath string
 
 	versionManager VersionManager
 }
 
-//go:generate counterfeiter -o mocks/fake_version_manager.go . VersionManager
 type VersionManager interface {
 	SyncLTC(ltcPath string, arch string, config *config_package.Config) error
 	ServerVersions() (version.ServerVersions, error)
+	LtcVersion() string
 }
 
-func NewVersionCommandFactory(config *config_package.Config, ui terminal.UI, exitHandler exit_handler.ExitHandler, arch string, ltcPath string, ltcVersion string, versionManager VersionManager) *VersionCommandFactory {
-	return &VersionCommandFactory{config, ui, exitHandler, arch, ltcPath, ltcVersion, versionManager}
+func NewVersionCommandFactory(config *config_package.Config, ui terminal.UI, exitHandler exit_handler.ExitHandler, arch string, ltcPath string, versionManager VersionManager) *VersionCommandFactory {
+	return &VersionCommandFactory{config, ui, exitHandler, arch, ltcPath, versionManager}
 }
 
 func (f *VersionCommandFactory) MakeSyncCommand() cli.Command {
@@ -85,7 +84,7 @@ func (f *VersionCommandFactory) syncLTC(context *cli.Context) {
 }
 
 func (f *VersionCommandFactory) version(context *cli.Context) {
-	f.ui.SayLine("Client version: " + f.ltcVersion)
+	f.ui.SayLine("Client version: " + f.versionManager.LtcVersion())
 
 	serverVersions, err := f.versionManager.ServerVersions()
 	if err != nil {

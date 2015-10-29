@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/test_helpers"
 	"github.com/cloudfoundry-incubator/ltc/version"
 	"github.com/cloudfoundry-incubator/ltc/version/command_factory"
-	"github.com/cloudfoundry-incubator/ltc/version/command_factory/mocks"
+	"github.com/cloudfoundry-incubator/ltc/version/fake_version_manager"
 	"github.com/codegangsta/cli"
 
 	. "github.com/onsi/ginkgo"
@@ -24,7 +24,7 @@ var _ = Describe("Version CommandFactory", func() {
 		outputBuffer       *gbytes.Buffer
 		terminalUI         terminal.UI
 		fakeExitHandler    *fake_exit_handler.FakeExitHandler
-		fakeVersionManager *mocks.FakeVersionManager
+		fakeVersionManager *fake_version_manager.FakeVersionManager
 		commandFactory     *command_factory.VersionCommandFactory
 	)
 
@@ -35,14 +35,14 @@ var _ = Describe("Version CommandFactory", func() {
 		outputBuffer = gbytes.NewBuffer()
 		terminalUI = terminal.NewUI(nil, outputBuffer, nil)
 		fakeExitHandler = &fake_exit_handler.FakeExitHandler{}
-		fakeVersionManager = &mocks.FakeVersionManager{}
+		fakeVersionManager = &fake_version_manager.FakeVersionManager{}
+		fakeVersionManager.LtcVersionReturns("1.8.0")
 		commandFactory = command_factory.NewVersionCommandFactory(
 			config,
 			terminalUI,
 			fakeExitHandler,
 			"darwin",
 			"/fake/ltc",
-			"1.8.0",
 			fakeVersionManager)
 	})
 
@@ -121,7 +121,7 @@ var _ = Describe("Version CommandFactory", func() {
 
 		Context("when the architecture is unknown", func() {
 			It("should print an error", func() {
-				commandFactory := command_factory.NewVersionCommandFactory(config, terminalUI, fakeExitHandler, "unknown-arch", "fakeltc", "", fakeVersionManager)
+				commandFactory := command_factory.NewVersionCommandFactory(config, terminalUI, fakeExitHandler, "unknown-arch", "fakeltc", fakeVersionManager)
 				syncCommand = commandFactory.MakeSyncCommand()
 
 				test_helpers.ExecuteCommandWithArgs(syncCommand, []string{})
@@ -134,7 +134,7 @@ var _ = Describe("Version CommandFactory", func() {
 
 		Context("when the ltc binary can't be found", func() {
 			It("should print an error", func() {
-				commandFactory := command_factory.NewVersionCommandFactory(config, terminalUI, fakeExitHandler, "darwin", "", "", fakeVersionManager)
+				commandFactory := command_factory.NewVersionCommandFactory(config, terminalUI, fakeExitHandler, "darwin", "", fakeVersionManager)
 				syncCommand = commandFactory.MakeSyncCommand()
 
 				test_helpers.ExecuteCommandWithArgs(syncCommand, []string{})
