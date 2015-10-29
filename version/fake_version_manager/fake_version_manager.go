@@ -22,20 +22,20 @@ type FakeVersionManager struct {
 	ServerVersionsStub        func() (version.ServerVersions, error)
 	serverVersionsMutex       sync.RWMutex
 	serverVersionsArgsForCall []struct{}
-	serverVersionsReturns struct {
+	serverVersionsReturns     struct {
 		result1 version.ServerVersions
 		result2 error
 	}
 	LtcVersionStub        func() string
 	ltcVersionMutex       sync.RWMutex
 	ltcVersionArgsForCall []struct{}
-	ltcVersionReturns struct {
+	ltcVersionReturns     struct {
 		result1 string
 	}
 	LtcMatchesServerStub        func() (bool, error)
 	ltcMatchesServerMutex       sync.RWMutex
 	ltcMatchesServerArgsForCall []struct{}
-	ltcMatchesServerReturns struct {
+	ltcMatchesServerReturns     struct {
 		result1 bool
 		result2 error
 	}
