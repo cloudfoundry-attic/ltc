@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"syscall"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,8 +37,6 @@ var _ = Describe("Zipper", func() {
 			tmpDir, err = ioutil.TempDir(os.TempDir(), "zip_contents")
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(ioutil.WriteFile(filepath.Join(tmpDir, "aaa"), []byte("aaa contents"), 0700)).To(Succeed())
-			Expect(ioutil.WriteFile(filepath.Join(tmpDir, "bbb"), []byte("bbb contents"), 0750)).To(Succeed())
 			Expect(ioutil.WriteFile(filepath.Join(tmpDir, "ccc"), []byte("ccc contents"), 0644)).To(Succeed())
 			Expect(os.Symlink("ccc", filepath.Join(tmpDir, "ddd"))).To(Succeed())
 			Expect(ioutil.WriteFile(filepath.Join(tmpDir, "some-ignored-file"), []byte("ignored contents"), 0644)).To(Succeed())
@@ -68,41 +65,20 @@ var _ = Describe("Zipper", func() {
 			zipReader, err := zip.OpenReader(zipPath)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(zipReader.File).To(HaveLen(6))
+			Expect(zipReader.File).To(HaveLen(4))
 
 			buffer := make([]byte, 12)
 			h := zipReader.File[0].FileHeader
 			f, err := zipReader.File[0].Open()
 			Expect(err).NotTo(HaveOccurred())
 			defer f.Close()
-			Expect(h.Name).To(Equal("aaa"))
-			Expect(h.FileInfo().Mode()).To(Equal(os.FileMode(0700)))
-			Expect(f.Read(buffer)).To(Equal(12))
-			Expect(string(buffer)).To(Equal("aaa contents"))
-
-			buffer = make([]byte, 12)
-			h = zipReader.File[1].FileHeader
-			f, err = zipReader.File[1].Open()
-			Expect(err).NotTo(HaveOccurred())
-			defer f.Close()
-			Expect(h.Name).To(Equal("bbb"))
-			Expect(h.FileInfo().Mode()).To(Equal(os.FileMode(0750)))
-			Expect(f.Read(buffer)).To(Equal(12))
-			Expect(string(buffer)).To(Equal("bbb contents"))
-
-			buffer = make([]byte, 12)
-			h = zipReader.File[2].FileHeader
-			f, err = zipReader.File[2].Open()
-			Expect(err).NotTo(HaveOccurred())
-			defer f.Close()
 			Expect(h.Name).To(Equal("ccc"))
-			Expect(h.FileInfo().Mode()).To(Equal(os.FileMode(0644)))
 			Expect(f.Read(buffer)).To(Equal(12))
 			Expect(string(buffer)).To(Equal("ccc contents"))
 
 			buffer = make([]byte, 3)
-			h = zipReader.File[3].FileHeader
-			f, err = zipReader.File[3].Open()
+			h = zipReader.File[1].FileHeader
+			f, err = zipReader.File[1].Open()
 			Expect(err).NotTo(HaveOccurred())
 			defer f.Close()
 			Expect(h.Name).To(Equal("ddd"))
@@ -111,31 +87,29 @@ var _ = Describe("Zipper", func() {
 			Expect(string(buffer)).To(Equal("ccc"))
 
 			buffer = make([]byte, 1)
-			h = zipReader.File[4].FileHeader
-			f, err = zipReader.File[4].Open()
+			h = zipReader.File[2].FileHeader
+			f, err = zipReader.File[2].Open()
 			Expect(err).NotTo(HaveOccurred())
 			defer f.Close()
 			Expect(h.Name).To(Equal("subfolder/"))
 			Expect(h.FileInfo().IsDir()).To(BeTrue())
-			Expect(h.FileInfo().Mode()).To(Equal(os.FileMode(os.ModeDir | 0755)))
 			_, err = f.Read(buffer)
 			Expect(err).To(MatchError("EOF"))
 
 			buffer = make([]byte, 12)
-			h = zipReader.File[5].FileHeader
-			f, err = zipReader.File[5].Open()
+			h = zipReader.File[3].FileHeader
+			f, err = zipReader.File[3].Open()
 			Expect(err).NotTo(HaveOccurred())
 			defer f.Close()
 			Expect(h.Name).To(Equal("subfolder/sub"))
-			Expect(h.FileInfo().Mode()).To(Equal(os.FileMode(0644)))
 			Expect(f.Read(buffer)).To(Equal(12))
 			Expect(string(buffer)).To(Equal("sub contents"))
 		})
 
 		Context("failure", func() {
 			It("returns an error if passed a non-directory", func() {
-				_, err := zipper.Zip(filepath.Join(tmpDir, "aaa"), fakeCFIgnore)
-				Expect(err).To(MatchError(fmt.Sprintf("%s must be a directory", filepath.Join(tmpDir, "aaa"))))
+				_, err := zipper.Zip(filepath.Join(tmpDir, "ccc"), fakeCFIgnore)
+				Expect(err).To(MatchError(fmt.Sprintf("%s must be a directory", filepath.Join(tmpDir, "ccc"))))
 			})
 
 			It("returns an error if .cfignore can't be parsed", func() {
@@ -152,11 +126,9 @@ var _ = Describe("Zipper", func() {
 			prevDir, tmpDir string
 			err             error
 			tmpFile         *os.File
-			prevUmask       int
 		)
 
 		BeforeEach(func() {
-			prevUmask = syscall.Umask(0)
 
 			tmpDir, err = ioutil.TempDir(os.TempDir(), "unzip_contents")
 			Expect(err).NotTo(HaveOccurred())
@@ -179,7 +151,6 @@ var _ = Describe("Zipper", func() {
 			)
 
 			header = &zip.FileHeader{Name: "aaa"}
-			header.SetMode(os.FileMode(0644))
 			w, err = zipWriter.CreateHeader(header)
 			Expect(err).NotTo(HaveOccurred())
 			length, err = w.Write([]byte("aaaaa"))
@@ -187,7 +158,6 @@ var _ = Describe("Zipper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			header = &zip.FileHeader{Name: "bbb/1.txt"}
-			header.SetMode(os.FileMode(0640))
 			w, err = zipWriter.CreateHeader(header)
 			Expect(err).NotTo(HaveOccurred())
 			length, err = w.Write([]byte("one"))
@@ -195,7 +165,6 @@ var _ = Describe("Zipper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			header = &zip.FileHeader{Name: "bbb/2.txt"}
-			header.SetMode(os.FileMode(0600))
 			w, err = zipWriter.CreateHeader(header)
 			Expect(err).NotTo(HaveOccurred())
 			length, err = w.Write([]byte("twoo"))
@@ -203,7 +172,6 @@ var _ = Describe("Zipper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			header = &zip.FileHeader{Name: "ddd/3.txt"}
-			header.SetMode(os.FileMode(0600))
 			w, err = zipWriter.CreateHeader(header)
 			Expect(err).NotTo(HaveOccurred())
 			length, err = w.Write([]byte("three"))
@@ -214,7 +182,6 @@ var _ = Describe("Zipper", func() {
 		AfterEach(func() {
 			tmpFile.Close()
 			os.Remove(tmpFile.Name())
-			syscall.Umask(prevUmask)
 		})
 
 		It("unzips", func() {
@@ -223,47 +190,41 @@ var _ = Describe("Zipper", func() {
 			var (
 				contents []byte
 				err      error
-				fileInfo os.FileInfo
 			)
 
 			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "aaa"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("aaaaa"))
 
-			fileInfo, err = os.Stat(filepath.Join(tmpDir, "aaa"))
+			_, err = os.Stat(filepath.Join(tmpDir, "aaa"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fileInfo.Mode()).To(Equal(os.FileMode(0644)))
 
-			fileInfo, err = os.Stat(filepath.Join(tmpDir, "bbb"))
+			_, err = os.Stat(filepath.Join(tmpDir, "bbb"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fileInfo.Mode().Perm()).To(Equal(os.FileMode(0777)))
 
-			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb/1.txt"))
+			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb", "1.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("one"))
 
-			fileInfo, err = os.Stat(filepath.Join(tmpDir, "bbb/1.txt"))
+			_, err = os.Stat(filepath.Join(tmpDir, "bbb", "1.txt"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fileInfo.Mode()).To(Equal(os.FileMode(0640)))
 
-			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb/2.txt"))
+			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "bbb", "2.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("twoo"))
 
-			fileInfo, err = os.Stat(filepath.Join(tmpDir, "bbb/2.txt"))
+			_, err = os.Stat(filepath.Join(tmpDir, "bbb", "2.txt"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fileInfo.Mode()).To(Equal(os.FileMode(0600)))
 
 			_, err = os.Stat(filepath.Join(tmpDir, "ccc"))
 			Expect(err).To(HaveOccurred())
 
-			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "ddd/3.txt"))
+			contents, err = ioutil.ReadFile(filepath.Join(tmpDir, "ddd", "3.txt"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("three"))
 
-			fileInfo, err = os.Stat(filepath.Join(tmpDir, "ddd"))
+			_, err = os.Stat(filepath.Join(tmpDir, "ddd"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fileInfo.Mode().Perm()).To(Equal(os.FileMode(0777)))
 		})
 	})
 
