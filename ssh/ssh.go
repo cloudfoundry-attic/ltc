@@ -5,10 +5,13 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
+	"time"
 
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
 	"github.com/cloudfoundry-incubator/ltc/exit_handler"
+	"github.com/cloudfoundry-incubator/ltc/ssh/sigwinch"
 	"github.com/docker/docker/pkg/term"
 )
 
@@ -113,11 +116,24 @@ func (s *SSH) Shell(command string, desirePTY bool) error {
 		}
 	}
 
-	signal.Notify(s.SigWinchChannel, syscall.SIGWINCH)
-	defer func() {
-		signal.Stop(s.SigWinchChannel)
-		close(s.SigWinchChannel)
-	}()
+	if runtime.GOOS == "windows" {
+		ticker := time.NewTicker(250 * time.Millisecond)
+		defer ticker.Stop()
+
+		go func() {
+			for _ = range ticker.C {
+				s.SigWinchChannel <- syscall.Signal(-1)
+			}
+			close(s.SigWinchChannel)
+		}()
+	} else {
+		signal.Notify(s.SigWinchChannel, sigwinch.SIGWINCH())
+		defer func() {
+			signal.Stop(s.SigWinchChannel)
+			close(s.SigWinchChannel)
+		}()
+	}
+
 	go s.resize(session, os.Stdout.Fd(), width, height)
 
 	defer close(session.KeepAlive())
