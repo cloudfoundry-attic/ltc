@@ -248,9 +248,9 @@ var _ = Describe("AppRunner", func() {
 					Expect(fakeReceptorClient.CreateDesiredLRPCallCount()).To(Equal(1))
 					routes := route_helpers.RoutesFromRoutingInfo(fakeReceptorClient.CreateDesiredLRPArgsForCall(0).Routes)
 					Expect(routes.TcpRoutes).To(ContainExactly(route_helpers.TcpRoutes{
-						{ExternalPort: 60000, Port: 2000},
-						{ExternalPort: 60010, Port: 2000},
-						{ExternalPort: 60020, Port: 3000},
+						{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 60000, Port: 2000},
+						{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 60010, Port: 2000},
+						{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 60020, Port: 3000},
 					}))
 					Expect(routes.AppRoutes).To(ContainExactly(route_helpers.AppRoutes{
 						{Hostnames: []string{"wiggle.myDiegoInstall.com/this", "wiggle.com/this", "swang.myDiegoInstall.com"}, Port: 2000},
@@ -269,9 +269,9 @@ var _ = Describe("AppRunner", func() {
 
 					Expect(routes.AppRoutes).To(BeNil())
 					Expect(routes.TcpRoutes).To(ContainExactly(route_helpers.TcpRoutes{
-						{ExternalPort: 60000, Port: 2000},
-						{ExternalPort: 60010, Port: 2000},
-						{ExternalPort: 60020, Port: 3000},
+						{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 60000, Port: 2000},
+						{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 60010, Port: 2000},
+						{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 60020, Port: 3000},
 					}))
 				})
 			})
@@ -893,8 +893,8 @@ var _ = Describe("AppRunner", func() {
 				processGuid, updateRequest := fakeReceptorClient.UpdateDesiredLRPArgsForCall(0)
 				Expect(processGuid).To(Equal("test-app"))
 				expectedRoutes := route_helpers.TcpRoutes{
-					{ExternalPort: 51000, Port: 8080},
-					{ExternalPort: 52000, Port: 9090},
+					{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 51000, Port: 8080},
+					{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 52000, Port: 9090},
 				}
 				routes := route_helpers.RoutesFromRoutingInfo(updateRequest.Routes)
 				Expect(routes.AppRoutes).To(BeNil())
@@ -934,8 +934,8 @@ var _ = Describe("AppRunner", func() {
 					{Hostnames: []string{"bar.myDiegoInstall.com"}, Port: 9090},
 				}
 				expectedRoutes := route_helpers.TcpRoutes{
-					{ExternalPort: 51000, Port: 5222},
-					{ExternalPort: 52000, Port: 6379},
+					{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 51000, Port: 5222},
+					{RouterGroupGuid: route_helpers.DefaultRouterGroupGuid, ExternalPort: 52000, Port: 6379},
 				}
 
 				routes := route_helpers.RoutesFromRoutingInfo(updateRequest.Routes)

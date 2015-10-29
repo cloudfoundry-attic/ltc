@@ -23,13 +23,17 @@ type AppRoute struct {
 	Port      uint16   `json:"port"`
 }
 
-const TcpRouter = "tcp-router"
+const (
+	DefaultRouterGroupGuid = "bad25cff-9332-48a6-8603-b619858e7992"
+	TcpRouter              = "tcp-router"
+)
 
 type TcpRoutes []TcpRoute
 
 type TcpRoute struct {
-	ExternalPort uint16 `json:"external_port"`
-	Port         uint16 `json:"container_port"`
+	RouterGroupGuid string `json:"router_group_guid"`
+	ExternalPort    uint16 `json:"external_port"`
+	Port            uint16 `json:"container_port"`
 }
 
 const DiegoSSHRouter = "diego-ssh"

@@ -234,8 +234,9 @@ func (appRunner *appRunner) buildRoutes(noRoutes bool, routeOverrides RouteOverr
 	if !noRoutes && len(tcpRoutes) > 0 {
 		for _, tcpRoute := range tcpRoutes {
 			appTcpRoutes = append(appTcpRoutes, route_helpers.TcpRoute{
-				ExternalPort: tcpRoute.ExternalPort,
-				Port:         tcpRoute.Port,
+				RouterGroupGuid: route_helpers.DefaultRouterGroupGuid,
+				ExternalPort:    tcpRoute.ExternalPort,
+				Port:            tcpRoute.Port,
 			})
 		}
 		routes.TcpRoutes = appTcpRoutes

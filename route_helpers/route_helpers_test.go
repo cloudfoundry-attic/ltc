@@ -157,12 +157,14 @@ var _ = Describe("RoutingInfoHelpers", func() {
 
 		BeforeEach(func() {
 			tcpRoute1 = route_helpers.TcpRoute{
-				ExternalPort: 50000,
-				Port:         5222,
+				RouterGroupGuid: route_helpers.DefaultRouterGroupGuid,
+				ExternalPort:    50000,
+				Port:            5222,
 			}
 			tcpRoute2 = route_helpers.TcpRoute{
-				ExternalPort: 51000,
-				Port:         5223,
+				RouterGroupGuid: route_helpers.DefaultRouterGroupGuid,
+				ExternalPort:    51000,
+				Port:            5223,
 			}
 			diegoSSHRoute = &route_helpers.DiegoSSHRoute{
 				Port:       2222,
