@@ -355,7 +355,7 @@ var _ = Describe("SSH", func() {
 
 			<-waitChan
 
-			sigWinchChan <- syscall.SIGWINCH
+			sigWinchChan <- syscall.Signal(-1)
 
 			Eventually(fakeTerm.GetWinsizeCallCount, 5).Should(Equal(2))
 			Expect(fakeSession.ResizeCallCount()).To(Equal(0))
