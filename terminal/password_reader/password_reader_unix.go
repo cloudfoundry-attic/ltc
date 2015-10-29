@@ -1,6 +1,7 @@
 // Copied from https://code.google.com/p/gopass/
 
 // +build darwin freebsd linux netbsd openbsd
+
 package password_reader
 
 import (
