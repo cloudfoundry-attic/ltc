@@ -26,6 +26,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/ltc/config"
 	"github.com/cloudfoundry-incubator/ltc/terminal/colors"
+	"github.com/cloudfoundry-incubator/ltc/test_helpers"
 )
 
 var numCPU int
@@ -239,7 +240,7 @@ func (runner *clusterTestRunner) cloneRepo(timeout time.Duration, repoURL string
 	Expect(err).NotTo(HaveOccurred())
 
 	expectExitInBuffer(timeout, session, session.Err)
-	Eventually(session.Err).Should(gbytes.Say(fmt.Sprintf("Cloning into '%s'...", tmpDir)))
+	Eventually(session.Err).Should(test_helpers.Say(fmt.Sprintf("Cloning into '%s'...", tmpDir)))
 
 	fmt.Fprintf(getStyledWriter("test"), "Cloned %s into %s\n", repoURL, tmpDir)
 
@@ -387,7 +388,7 @@ func (runner *clusterTestRunner) removeApp(timeout time.Duration, appName string
 func (runner *clusterTestRunner) command(arg ...string) *exec.Cmd {
 	command := exec.Command(runner.ltcExecutablePath, arg...)
 	cliHome := fmt.Sprintf("LATTICE_CLI_HOME=%s", runner.latticeCliHome)
-	command.Env = []string{cliHome}
+	command.Env = append(os.Environ(), cliHome)
 	return command
 }
 
