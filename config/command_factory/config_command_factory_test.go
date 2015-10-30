@@ -15,7 +15,7 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/exit_handler/exit_codes"
 	"github.com/cloudfoundry-incubator/ltc/exit_handler/fake_exit_handler"
 	"github.com/cloudfoundry-incubator/ltc/terminal"
-	"github.com/cloudfoundry-incubator/ltc/terminal/password_reader/fake_password_reader"
+	"github.com/cloudfoundry-incubator/ltc/terminal/mocks"
 	"github.com/cloudfoundry-incubator/ltc/test_helpers"
 	"github.com/cloudfoundry-incubator/ltc/version/fake_version_manager"
 	"github.com/codegangsta/cli"
@@ -34,7 +34,7 @@ var _ = Describe("CommandFactory", func() {
 		fakeTargetVerifier    *fake_target_verifier.FakeTargetVerifier
 		fakeBlobStoreVerifier *fake_blob_store_verifier.FakeBlobStoreVerifier
 		fakeExitHandler       *fake_exit_handler.FakeExitHandler
-		fakePasswordReader    *fake_password_reader.FakePasswordReader
+		fakePasswordReader    *mocks.FakePasswordReader
 		fakeVersionManager    *fake_version_manager.FakeVersionManager
 	)
 
@@ -42,7 +42,7 @@ var _ = Describe("CommandFactory", func() {
 		stdinReader, stdinWriter = io.Pipe()
 		outputBuffer = gbytes.NewBuffer()
 		fakeExitHandler = &fake_exit_handler.FakeExitHandler{}
-		fakePasswordReader = &fake_password_reader.FakePasswordReader{}
+		fakePasswordReader = &mocks.FakePasswordReader{}
 		terminalUI = terminal.NewUI(stdinReader, outputBuffer, fakePasswordReader)
 		fakeTargetVerifier = &fake_target_verifier.FakeTargetVerifier{}
 		fakeBlobStoreVerifier = &fake_blob_store_verifier.FakeBlobStoreVerifier{}
@@ -434,13 +434,12 @@ var _ = Describe("CommandFactory", func() {
 			It("prompts for s3 configuration when --s3 is passed", func() {
 				fakeTargetVerifier.VerifyTargetReturns(true, true, nil)
 				fakeBlobStoreVerifier.VerifyReturns(true, nil)
+				fakePasswordReader.PromptForPasswordReturns("some-secret")
 
 				doneChan := test_helpers.AsyncExecuteCommandWithArgs(targetCommand, []string{"myapi.com", "--s3"})
 
 				Eventually(outputBuffer).Should(test_helpers.Say("S3 Access Key: "))
 				stdinWriter.Write([]byte("some-access\n"))
-				Eventually(outputBuffer).Should(test_helpers.Say("S3 Secret Key: "))
-				stdinWriter.Write([]byte("some-secret\n"))
 				Eventually(outputBuffer).Should(test_helpers.Say("S3 Bucket: "))
 				stdinWriter.Write([]byte("some-bucket\n"))
 				Eventually(outputBuffer).Should(test_helpers.Say("S3 Region: "))

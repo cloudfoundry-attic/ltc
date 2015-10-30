@@ -76,7 +76,7 @@ func (factory *ConfigCommandFactory) target(context *cli.Context) {
 
 	if s3Enabled {
 		accessKey := factory.ui.Prompt("S3 Access Key")
-		secretKey := factory.ui.Prompt("S3 Secret Key")
+		secretKey := factory.ui.PromptForPassword("S3 Secret Key")
 		bucketName := factory.ui.Prompt("S3 Bucket")
 		region := factory.ui.Prompt("S3 Region")
 		factory.config.SetS3BlobStore(accessKey, secretKey, bucketName, region)

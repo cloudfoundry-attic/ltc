@@ -8,8 +8,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 
 	"github.com/cloudfoundry-incubator/ltc/terminal"
-	"github.com/cloudfoundry-incubator/ltc/terminal/password_reader"
-	"github.com/cloudfoundry-incubator/ltc/terminal/password_reader/fake_password_reader"
+	"github.com/cloudfoundry-incubator/ltc/terminal/mocks"
 	"github.com/cloudfoundry-incubator/ltc/test_helpers"
 )
 
@@ -18,14 +17,14 @@ var _ = Describe("UI", func() {
 		stdinReader        *io.PipeReader
 		stdinWriter        *io.PipeWriter
 		outputBuffer       *gbytes.Buffer
-		fakePasswordReader *fake_password_reader.FakePasswordReader
+		fakePasswordReader *mocks.FakePasswordReader
 		terminalUI         terminal.UI
 	)
 
 	BeforeEach(func() {
 		stdinReader, stdinWriter = io.Pipe()
 		outputBuffer = gbytes.NewBuffer()
-		fakePasswordReader = &fake_password_reader.FakePasswordReader{}
+		fakePasswordReader = &mocks.FakePasswordReader{}
 		terminalUI = terminal.NewUI(stdinReader, outputBuffer, fakePasswordReader)
 	})
 
@@ -35,9 +34,6 @@ var _ = Describe("UI", func() {
 
 			_, readWriterOk := terminalUI.(io.ReadWriter)
 			Expect(readWriterOk).To(BeTrue())
-
-			_, passwordReaderOk := terminalUI.(password_reader.PasswordReader)
-			Expect(passwordReaderOk).To(BeTrue())
 		})
 	})
 

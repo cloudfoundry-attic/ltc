@@ -12,6 +12,7 @@ import (
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
 	"github.com/cloudfoundry-incubator/ltc/exit_handler"
 	"github.com/cloudfoundry-incubator/ltc/ssh/sigwinch"
+	"github.com/cloudfoundry-incubator/ltc/terminal"
 	"github.com/docker/docker/pkg/term"
 )
 
@@ -52,7 +53,7 @@ func New(exitHandler exit_handler.ExitHandler) *SSH {
 	return &SSH{
 		Listener:        &ChannelListener{},
 		ClientDialer:    &AppDialer{},
-		Term:            &DockerTerm{},
+		Term:            &terminal.DockerTerm{},
 		SessionFactory:  &SSHAPISessionFactory{},
 		SigWinchChannel: make(chan os.Signal),
 		ExitHandler:     exitHandler,

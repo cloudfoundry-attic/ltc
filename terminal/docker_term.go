@@ -1,4 +1,4 @@
-package ssh
+package terminal
 
 import "github.com/docker/docker/pkg/term"
 
@@ -8,8 +8,16 @@ func (*DockerTerm) SetRawTerminal(fd uintptr) (*term.State, error) {
 	return term.SetRawTerminal(fd)
 }
 
+func (*DockerTerm) SaveState(fd uintptr) (*term.State, error) {
+	return term.SaveState(fd)
+}
+
 func (*DockerTerm) RestoreTerminal(fd uintptr, state *term.State) error {
 	return term.RestoreTerminal(fd, state)
+}
+
+func (*DockerTerm) DisableEcho(fd uintptr, state *term.State) error {
+	return term.DisableEcho(fd, state)
 }
 
 func (*DockerTerm) GetWinsize(fd uintptr) (width, height int) {

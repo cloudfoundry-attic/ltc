@@ -30,7 +30,6 @@ import (
 	"github.com/cloudfoundry-incubator/ltc/task_examiner"
 	"github.com/cloudfoundry-incubator/ltc/task_runner"
 	"github.com/cloudfoundry-incubator/ltc/terminal"
-	"github.com/cloudfoundry-incubator/ltc/terminal/password_reader"
 	"github.com/cloudfoundry-incubator/ltc/version"
 	"github.com/cloudfoundry/noaa"
 	"github.com/codegangsta/cli"
@@ -111,7 +110,7 @@ func MakeCliApp(
 	app.Usage = LtcUsage
 	app.Email = "cf-lattice@lists.cloudfoundry.org"
 
-	ui := terminal.NewUI(os.Stdin, cliStdout, password_reader.NewPasswordReader(exitHandler))
+	ui := terminal.NewUI(os.Stdin, cliStdout, terminal.NewPasswordReader())
 	app.Writer = ui
 
 	app.Before = func(context *cli.Context) error {

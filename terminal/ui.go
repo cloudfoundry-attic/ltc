@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
-	"github.com/cloudfoundry-incubator/ltc/terminal/password_reader"
 )
+
+//go:generate counterfeiter -o mocks/fake_password_reader.go . PasswordReader
+type PasswordReader interface {
+	PromptForPassword(promptText string, args ...interface{}) string
+}
 
 type UI interface {
 	io.ReadWriter
-	password_reader.PasswordReader
+	PasswordReader
 
 	Prompt(promptText string, args ...interface{}) string
 	PromptWithDefault(promptText, defaultValue string, args ...interface{}) string
@@ -24,10 +27,10 @@ type UI interface {
 type terminalUI struct {
 	io.Reader
 	io.Writer
-	password_reader.PasswordReader
+	PasswordReader
 }
 
-func NewUI(input io.Reader, output io.Writer, passwordReader password_reader.PasswordReader) UI {
+func NewUI(input io.Reader, output io.Writer, passwordReader PasswordReader) UI {
 	return &terminalUI{
 		input,
 		output,
