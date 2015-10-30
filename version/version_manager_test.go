@@ -51,7 +51,7 @@ var _ = Describe("VersionManager", func() {
 	})
 
 	AfterEach(func() {
-		defer ltcTempFile.Close()
+		ltcTempFile.Close()
 		Expect(os.Remove(ltcTempFile.Name())).To(Succeed())
 	})
 
