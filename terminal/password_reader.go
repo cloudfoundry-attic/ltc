@@ -39,11 +39,11 @@ func NewPasswordReader() *TermPasswordReader {
 func (pr *TermPasswordReader) PromptForPassword(promptText string, args ...interface{}) string {
 	fmt.Fprintf(pr.Stdout, promptText+": ", args...)
 
-	stateptr, err := pr.Term.SaveState(pr.Stdin.Fd())
+	originalState, err := pr.Term.SaveState(pr.Stdin.Fd())
 	if err == nil {
-		err := pr.Term.DisableEcho(pr.Stdin.Fd(), stateptr)
-		if err == nil {
-			defer pr.Term.RestoreTerminal(pr.Stdin.Fd(), stateptr)
+		newState := *originalState
+		if err := pr.Term.DisableEcho(pr.Stdin.Fd(), &newState); err == nil {
+			defer pr.Term.RestoreTerminal(pr.Stdin.Fd(), originalState)
 			defer fmt.Fprintln(pr.Stdout, "")
 		}
 	}

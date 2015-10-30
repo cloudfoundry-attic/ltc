@@ -53,7 +53,7 @@ var _ = Describe("PasswordReader", func() {
 			Expect(fakeTerm.DisableEchoCallCount()).To(Equal(1))
 			fd, state := fakeTerm.DisableEchoArgsForCall(0)
 			Expect(fd).To(Equal(uintptr(42)))
-			Expect(state == termState).To(BeTrue())
+			Expect(state == termState).To(BeFalse())
 
 			Expect(fakeTerm.RestoreTerminalCallCount()).To(Equal(1))
 			fd, state = fakeTerm.RestoreTerminalArgsForCall(0)
