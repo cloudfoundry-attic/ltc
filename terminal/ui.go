@@ -43,7 +43,7 @@ func (t *terminalUI) Prompt(promptText string, args ...interface{}) string {
 	fmt.Fprintf(t.Writer, promptText+": ", args...)
 
 	result, _ := reader.ReadString('\n')
-	return strings.TrimSuffix(result, "\n")
+	return strings.TrimSpace(result)
 }
 
 func (t *terminalUI) PromptWithDefault(promptText, defaultValue string, args ...interface{}) string {
@@ -51,7 +51,7 @@ func (t *terminalUI) PromptWithDefault(promptText, defaultValue string, args ...
 	fmt.Fprintf(t.Writer, promptText+fmt.Sprintf(" [%s]: ", defaultValue), args...)
 
 	result, _ := reader.ReadString('\n')
-	result = strings.TrimSuffix(result, "\n")
+	result = strings.TrimSpace(result)
 
 	if result == "" {
 		return defaultValue
