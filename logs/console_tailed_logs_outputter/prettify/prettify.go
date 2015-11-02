@@ -70,24 +70,22 @@ func prettyPrintLog(entry chug.Entry) []string {
 		logColor = colors.ColorRed
 		level = "[FATAL]"
 	}
-	level = fmt.Sprintf("%s%-9s", logColor, level)
 
 	var components []string
-	components = append(components, level)
+	components = append(components, colors.Colorize(logColor, "%-9s", level))
 
 	timestamp := entry.Log.Timestamp.Format("01/02 15:04:05.00")
-	components = append(components, fmt.Sprintf("%-17s", timestamp))
-	components = append(components, fmt.Sprintf("%-14s", entry.Log.Session))
-	components = append(components, entry.Log.Message)
-	components = append(components, colors.ColorDefault)
+	components = append(components, colors.Colorize(logColor, "%-17s", timestamp))
+	components = append(components, colors.Colorize(logColor, "%-14s", entry.Log.Session))
+	components = append(components, colors.Colorize(logColor, entry.Log.Message))
 
 	if entry.Log.Error != nil {
-		components = append(components, fmt.Sprintf("\n%s%s%s%s", strings.Repeat(" ", 66), logColor, entry.Log.Error.Error(), colors.ColorDefault))
+		components = append(components, fmt.Sprintf("\n%s%s", strings.Repeat(" ", 66), colors.Colorize(logColor, entry.Log.Error.Error())))
 	}
 
 	if len(entry.Log.Data) > 0 {
 		dataJSON, _ := json.Marshal(entry.Log.Data)
-		components = append(components, fmt.Sprintf("\n%s%s%s%s", strings.Repeat(" ", 66), logColor, string(dataJSON), colors.ColorDefault))
+		components = append(components, fmt.Sprintf("\n%s%s", strings.Repeat(" ", 66), colors.Colorize(logColor, string(dataJSON))))
 	}
 
 	return components
