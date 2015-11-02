@@ -2,6 +2,7 @@ package colors
 
 import (
 	"fmt"
+	"os"
 )
 
 //TODO: remove Color prefix from color constants
@@ -25,5 +26,9 @@ func Colorize(colorCode string, format string, args ...interface{}) string {
 		out = format
 	}
 
-	return fmt.Sprintf("%s%s%s", colorCode, out, defaultStyle)
+	if os.Getenv("TERM") == "" {
+		return out
+	} else {
+		return fmt.Sprintf("%s%s%s", colorCode, out, defaultStyle)
+	}
 }

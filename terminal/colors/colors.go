@@ -2,6 +2,7 @@ package colors
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -51,8 +52,9 @@ func PurpleUnderline(output string) string {
 }
 
 func colorText(output string, color string) string {
-	if strings.TrimSpace(output) == "" {
+	if strings.TrimSpace(output) == "" || os.Getenv("TERM") == "" {
 		return output
+	} else {
+		return fmt.Sprintf("%s%s%s", color, output, defaultStyle)
 	}
-	return fmt.Sprintf("%s%s%s", color, output, defaultStyle)
 }
