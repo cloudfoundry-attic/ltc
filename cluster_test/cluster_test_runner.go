@@ -77,6 +77,7 @@ func NewClusterTestRunner(config *config.Config, latticeCliHome string) ClusterT
 func (runner *clusterTestRunner) Run(timeout time.Duration, verbose bool) {
 	ginkgo_config.DefaultReporterConfig.Verbose = verbose
 	ginkgo_config.DefaultReporterConfig.SlowSpecThreshold = float64(45)
+	ginkgo_config.DefaultReporterConfig.NoColor = runtime.GOOS == "windows"
 	defineTheGinkgoTests(runner, timeout)
 	RegisterFailHandler(Fail)
 	RunSpecs(runner.testingT, "Lattice Integration Tests")
