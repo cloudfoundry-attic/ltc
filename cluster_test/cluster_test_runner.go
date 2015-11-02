@@ -116,7 +116,7 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 
 			It("should run with the provided ltc options", func() {
 				debugLogsStream := runner.streamDebugLogs(timeout)
-				defer func() { debugLogsStream.Terminate().Wait() }()
+				defer func() { killSession(debugLogsStream) }()
 
 				runner.createDockerApp(timeout, appName, "cloudfoundry/lattice-app", fmt.Sprintf("--timeout=%s", timeout.String()))
 
@@ -124,10 +124,10 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 
 				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("rep.*lattice-(colocated|cell|brain)-\\d+"))
 				Eventually(debugLogsStream.Out, timeout).Should(gbytes.Say("garden-linux.*lattice-(colocated|cell|brain)-\\d+"))
-				debugLogsStream.Terminate().Wait()
+				killSession(debugLogsStream)
 
 				logsStream := runner.streamLogs(timeout, appName)
-				defer func() { logsStream.Terminate().Wait() }()
+				defer func() { killSession(logsStream) }()
 
 				Eventually(logsStream.Out, timeout).Should(gbytes.Say("Lattice-app. Says Hello."))
 
@@ -230,13 +230,21 @@ func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
 	})
 }
 
+func killSession(session *gexec.Session) {
+	if runtime.GOOS == "windows" {
+		session.Kill().Wait()
+	} else {
+		session.Terminate().Wait()
+	}
+}
+
 func (runner *clusterTestRunner) cloneRepo(timeout time.Duration, repoURL string) string {
 	tmpDir, err := ioutil.TempDir("", "repo")
 	Expect(err).NotTo(HaveOccurred())
 
 	fmt.Fprintln(getStyledWriter("test"), colors.PurpleUnderline(fmt.Sprintf("Attempting to clone %s to %s", repoURL, tmpDir)))
 
-	command := exec.Command("/usr/bin/env", "git", "clone", repoURL, tmpDir)
+	command := exec.Command("git", "clone", repoURL, tmpDir)
 	session, err := gexec.Start(command, getStyledWriter("git-clone"), getStyledWriter("git-clone"))
 	Expect(err).NotTo(HaveOccurred())
 
