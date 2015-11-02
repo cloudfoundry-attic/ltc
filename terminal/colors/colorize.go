@@ -15,6 +15,8 @@ const (
 	ColorDefault string = "\x1b[0m"
 	ColorBold    string = "\x1b[1m"
 	ColorGray    string = "\x1b[90m"
+	ColorBlue    string = "\x1b[34m"
+	ColorPurple  string = "\x1b[35m"
 )
 
 func Colorize(colorCode string, format string, args ...interface{}) string {

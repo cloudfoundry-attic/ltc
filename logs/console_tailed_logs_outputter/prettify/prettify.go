@@ -15,27 +15,35 @@ import (
 )
 
 var colorLookup = map[string]string{
-	"rep":          "\x1b[34m",
-	"garden-linux": "\x1b[35m",
+	"rep":          colors.ColorBlue,
+	"garden-linux": colors.ColorPurple,
 }
 
 func Prettify(logMessage *events.LogMessage) string {
 	entry := chug.ChugLogMessage(logMessage)
 
+	var sourceType, sourceTypeColorized, sourceInstance, sourceInstanceColorized string
+
+	sourceType = path.Base(entry.LogMessage.GetSourceType())
+	sourceInstance = entry.LogMessage.GetSourceInstance()
+
 	// TODO: Or, do we use GetSourceType() for raw and Json source for pretty?
-	color, ok := colorLookup[path.Base(strings.Split(entry.LogMessage.GetSourceType(), ":")[0])]
-	if !ok {
-		color = colors.ColorDefault
+	color, ok := colorLookup[path.Base(strings.Split(sourceType, ":")[0])]
+	if ok {
+		sourceTypeColorized = colors.Colorize(color, sourceType)
+		sourceInstanceColorized = colors.Colorize(color, sourceInstance)
+	} else {
+		sourceTypeColorized = sourceType
+		sourceInstanceColorized = sourceInstance
 	}
 
-	sourcePrefix := fmt.Sprintf("[%s%s%s|%s%s%s]", color, path.Base(entry.LogMessage.GetSourceType()), colors.ColorDefault, color, entry.LogMessage.GetSourceInstance(), colors.ColorDefault)
-	colorWidth := len(color)*2 + len(colors.ColorDefault)*2
-	sourcePrefixWidth := strconv.Itoa(22 + colorWidth)
+	prefix := fmt.Sprintf("[%s|%s]", sourceTypeColorized, sourceInstanceColorized)
 
-	var components []string
-	components = append(components, fmt.Sprintf("%-"+sourcePrefixWidth+"s", sourcePrefix))
+	colorWidth := len(sourceTypeColorized+sourceInstanceColorized) - len(sourceType+sourceInstance)
+
+	components := append([]string(nil), fmt.Sprintf("%-"+strconv.Itoa(34+colorWidth)+"s", prefix))
+
 	var whichFunc func(chug.Entry) []string
-
 	if entry.IsLager {
 		whichFunc = prettyPrintLog
 	} else {
