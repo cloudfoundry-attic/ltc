@@ -50,6 +50,7 @@ type clusterTestRunner struct {
 type ginkgoTestingT struct{}
 
 func (g *ginkgoTestingT) Fail() {
+	fmt.Println("")
 	os.Exit(1)
 }
 
@@ -81,7 +82,7 @@ func (runner *clusterTestRunner) Run(timeout time.Duration, verbose bool) {
 	defineTheGinkgoTests(runner, timeout)
 	RegisterFailHandler(Fail)
 	RunSpecs(runner.testingT, "Lattice Integration Tests")
-	fmt.Fprintln(GinkgoWriter, "")
+	fmt.Println("")
 }
 
 func defineTheGinkgoTests(runner *clusterTestRunner, timeout time.Duration) {
