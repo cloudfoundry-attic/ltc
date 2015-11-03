@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 
 	"github.com/cloudfoundry-incubator/bbs/models"
@@ -19,11 +20,11 @@ type BlobStore struct {
 }
 
 func New(blobTarget config_package.S3BlobStoreConfig) *BlobStore {
-	client := s3.New(&aws.Config{
+	client := s3.New(session.New(&aws.Config{
 		Credentials:      credentials.NewStaticCredentials(blobTarget.AccessKey, blobTarget.SecretKey, ""),
 		Region:           aws.String(blobTarget.Region),
 		S3ForcePathStyle: aws.Bool(true),
-	})
+	}))
 
 	return &BlobStore{
 		Bucket:     blobTarget.BucketName,

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/service"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -20,7 +20,7 @@ import (
 )
 
 type nullRetryer struct {
-	service.DefaultRetryer
+	client.DefaultRetryer
 }
 
 func (n nullRetryer) ShouldRetry(_ *request.Request) bool {

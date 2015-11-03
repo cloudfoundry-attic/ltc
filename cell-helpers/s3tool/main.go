@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
@@ -116,11 +117,11 @@ func putAction(args []string) {
 }
 
 func connect(accessKey, secretKey, region string) *s3.S3 {
-	client := s3.New(&aws.Config{
+	client := s3.New(session.New(&aws.Config{
 		Credentials:      credentials.NewStaticCredentials(accessKey, secretKey, ""),
 		Region:           aws.String(region),
 		S3ForcePathStyle: aws.Bool(true),
-	})
+	}))
 
 	if override := os.Getenv("AWS_ENDPOINT_OVERRIDE"); override != "" {
 		client.Endpoint = override
