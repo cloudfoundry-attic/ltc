@@ -204,6 +204,7 @@ var _ = Describe("BlobStore", func() {
 		Describe("#DownloadAppBitsAction", func() {
 			It("constructs the correct Action to download app bits", func() {
 				Expect(blobStore.DownloadAppBitsAction("droplet-name")).To(Equal(models.WrapAction(&models.SerialAction{
+					LogSource: "DROPLET",
 					Actions: []*models.Action{
 						models.WrapAction(&models.RunAction{
 							Path: "/tmp/s3tool",
@@ -248,7 +249,8 @@ var _ = Describe("BlobStore", func() {
 						"some-s3-region",
 						"/droplet-name/bits.zip",
 					},
-					User: "vcap",
+					User:      "vcap",
+					LogSource: "DROPLET",
 				})))
 			})
 		})
@@ -267,7 +269,8 @@ var _ = Describe("BlobStore", func() {
 						"/droplet-name/droplet.tgz",
 						"/tmp/droplet",
 					},
-					User: "vcap",
+					User:      "vcap",
+					LogSource: "DROPLET",
 				})))
 			})
 		})
@@ -286,7 +289,8 @@ var _ = Describe("BlobStore", func() {
 						"/droplet-name/result.json",
 						"/tmp/result.json",
 					},
-					User: "vcap",
+					User:      "vcap",
+					LogSource: "DROPLET",
 				})))
 			})
 		})
@@ -294,6 +298,7 @@ var _ = Describe("BlobStore", func() {
 		Describe("#DownloadDropletAction", func() {
 			It("constructs the correct Action to download the droplet", func() {
 				Expect(blobStore.DownloadDropletAction("droplet-name")).To(Equal(models.WrapAction(&models.SerialAction{
+					LogSource: "DROPLET",
 					Actions: []*models.Action{
 						models.WrapAction(&models.RunAction{
 							Path: "/tmp/s3tool",

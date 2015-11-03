@@ -268,43 +268,48 @@ func (b *BlobStore) Delete(path string) error {
 
 func (b *BlobStore) DownloadAppBitsAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.DownloadAction{
-		From: b.URL.String() + "/blobs/" + dropletName + "/bits.zip",
-		To:   "/tmp/app",
-		User: "vcap",
+		From:      b.URL.String() + "/blobs/" + dropletName + "/bits.zip",
+		To:        "/tmp/app",
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }
 
 func (b *BlobStore) DeleteAppBitsAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.RunAction{
-		Path: "/tmp/davtool",
-		Dir:  "/",
-		Args: []string{"delete", b.URL.String() + "/blobs/" + dropletName + "/bits.zip"},
-		User: "vcap",
+		Path:      "/tmp/davtool",
+		Dir:       "/",
+		Args:      []string{"delete", b.URL.String() + "/blobs/" + dropletName + "/bits.zip"},
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }
 
 func (b *BlobStore) UploadDropletAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.RunAction{
-		Path: "/tmp/davtool",
-		Dir:  "/",
-		Args: []string{"put", b.URL.String() + "/blobs/" + dropletName + "/droplet.tgz", "/tmp/droplet"},
-		User: "vcap",
+		Path:      "/tmp/davtool",
+		Dir:       "/",
+		Args:      []string{"put", b.URL.String() + "/blobs/" + dropletName + "/droplet.tgz", "/tmp/droplet"},
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }
 
 func (b *BlobStore) UploadDropletMetadataAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.RunAction{
-		Path: "/tmp/davtool",
-		Dir:  "/",
-		Args: []string{"put", b.URL.String() + "/blobs/" + dropletName + "/result.json", "/tmp/result.json"},
-		User: "vcap",
+		Path:      "/tmp/davtool",
+		Dir:       "/",
+		Args:      []string{"put", b.URL.String() + "/blobs/" + dropletName + "/result.json", "/tmp/result.json"},
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }
 
 func (b *BlobStore) DownloadDropletAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.DownloadAction{
-		From: b.URL.String() + "/blobs/" + dropletName + "/droplet.tgz",
-		To:   "/home/vcap",
-		User: "vcap",
+		From:      b.URL.String() + "/blobs/" + dropletName + "/droplet.tgz",
+		To:        "/home/vcap",
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }

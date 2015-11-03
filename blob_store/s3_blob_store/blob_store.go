@@ -80,6 +80,7 @@ func (b *BlobStore) Delete(path string) error {
 
 func (b *BlobStore) DownloadAppBitsAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.SerialAction{
+		LogSource: "DROPLET",
 		Actions: []*models.Action{
 			models.WrapAction(&models.RunAction{
 				Path: "/tmp/s3tool",
@@ -122,7 +123,8 @@ func (b *BlobStore) DeleteAppBitsAction(dropletName string) *models.Action {
 			b.blobTarget.Region,
 			"/" + dropletName + "/bits.zip",
 		},
-		User: "vcap",
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }
 
@@ -139,7 +141,8 @@ func (b *BlobStore) UploadDropletAction(dropletName string) *models.Action {
 			"/" + dropletName + "/droplet.tgz",
 			"/tmp/droplet",
 		},
-		User: "vcap",
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }
 
@@ -156,12 +159,14 @@ func (b *BlobStore) UploadDropletMetadataAction(dropletName string) *models.Acti
 			"/" + dropletName + "/result.json",
 			"/tmp/result.json",
 		},
-		User: "vcap",
+		User:      "vcap",
+		LogSource: "DROPLET",
 	})
 }
 
 func (b *BlobStore) DownloadDropletAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.SerialAction{
+		LogSource: "DROPLET",
 		Actions: []*models.Action{
 			models.WrapAction(&models.RunAction{
 				Path: "/tmp/s3tool",

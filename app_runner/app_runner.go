@@ -356,8 +356,9 @@ func (appRunner *appRunner) desireLrp(params CreateAppParams) error {
 							fmt.Sprintf("-authorizedKey=%s", public),
 							fmt.Sprintf("-hostKey=%s", hostKey),
 						},
-						Dir:  "/tmp",
-						User: params.User,
+						Dir:       "/tmp",
+						User:      params.User,
+						LogSource: "SSH",
 					}),
 					models.WrapAction(&models.RunAction{
 						Path: params.StartCommand,

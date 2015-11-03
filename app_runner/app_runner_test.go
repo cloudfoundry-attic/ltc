@@ -141,8 +141,9 @@ var _ = Describe("AppRunner", func() {
 							"-authorizedKey=THIS IS A PUBLIC KEY",
 							"-hostKey=THIS IS A PRIVATE HOST KEY",
 						},
-						Dir:  "/tmp",
-						User: "start-user",
+						Dir:       "/tmp",
+						User:      "start-user",
+						LogSource: "SSH",
 					}),
 					models.WrapAction(&models.RunAction{
 						Path: "/app-run-statement",
