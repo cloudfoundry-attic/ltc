@@ -2,6 +2,7 @@ package prettify_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -104,111 +105,146 @@ var _ = Describe("Prettify", func() {
 		})
 
 		Describe("output coloring", func() {
-			It("highlights the source type column with app-specific color", func() {
-				input = []byte(`{"timestamp":"1429296198.620077372","source":"rep","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":1,"data":{}}`)
-				logMessage := buildLogMessage("rep", "cell-77", time.Time{}, input)
+			Context("when $TERM is set", func() {
+				var previousTerm string
 
-				prettyLog := prettify.Prettify(logMessage)
+				BeforeEach(func() {
+					previousTerm = os.Getenv("TERM")
+					Expect(os.Setenv("TERM", "xterm")).To(Succeed())
+				})
 
-				Expect(prettyLog).To(MatchRegexp(strings.Replace(colors.Colorize("\x1b[34m", "rep"), "[", `\[`, -1)))
+				AfterEach(func() {
+					Expect(os.Setenv("TERM", previousTerm)).To(Succeed())
+				})
+
+				It("highlights the source type column with app-specific color", func() {
+					input = []byte(`{"timestamp":"1429296198.620077372","source":"rep","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":1,"data":{}}`)
+					logMessage := buildLogMessage("rep", "cell-77", time.Time{}, input)
+
+					prettyLog := prettify.Prettify(logMessage)
+
+					Expect(prettyLog).To(MatchRegexp(strings.Replace(colors.Colorize("\x1b[34m", "rep"), "[", `\[`, -1)))
+				})
+
+				It("chooses color based on file component of sourceType path", func() {
+					input = []byte(`{"timestamp":"1429296198.620077372","source":"/var/vcap/packages/rep/bin/rep","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":1,"data":{}}`)
+					logMessage := buildLogMessage("/var/vcap/packages/rep/bin/rep", "cell-77", time.Time{}, input)
+
+					prettyLog := prettify.Prettify(logMessage)
+
+					Expect(prettyLog).To(MatchRegexp(strings.Replace(colors.Colorize("\x1b[34m", "rep"), "[", `\[`, -1)))
+				})
+
+				Context("when the source type is unknown", func() {
+					It("doesn't highlight the source type column", func() {
+						input = []byte(`{"timestamp":"1429296198.620077372","source":"happyjoy","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":1,"data":{"container-guid":"app-9eb203ad-72f3-4f26-6424-48f20dc12298","session":"7.1.10"}}`)
+						logMessage := buildLogMessage("happyjoy", "", time.Time{}, input)
+
+						prettyLog := prettify.Prettify(logMessage)
+
+						Expect(prettyLog).To(ContainSubstring(`[happyjoy|`))
+					})
+				})
+
+				Context("for the various log levels", func() {
+
+					buildInputByLevel := func(logLevel lager.LogLevel) []byte {
+						inputPrefix := `{"timestamp":"1429296198.620077372","source":"rep","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":`
+						inputSuffix := `,"data":{}}`
+
+						var inputMessage []string
+						inputMessage = append(inputMessage, inputPrefix)
+						inputMessage = append(inputMessage, fmt.Sprint(logLevel))
+						inputMessage = append(inputMessage, inputSuffix)
+						return []byte(strings.Join(inputMessage, ""))
+					}
+
+					It("colors the INFO with SourceType-specific color", func() {
+						logMessage := buildLogMessage("generic", "instance", time.Time{}, buildInputByLevel(lager.INFO))
+
+						prettyLog := prettify.Prettify(logMessage)
+
+						var outputExpects []string
+						outputExpects = append(outputExpects, regexSafe(""))
+						outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
+						outputExpects = append(outputExpects, regexSafe("[INFO]"))
+						outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
+						outputExpects = append(outputExpects, regexSafe(""))
+						regexPattern := strings.Join(outputExpects, ".*")
+
+						// TODO: there are other default color tokens in this string, improve test
+						Expect(prettyLog).To(MatchRegexp(regexPattern))
+					})
+
+					It("colors the DEBUG as Gray", func() {
+						logMessage := buildLogMessage("", "", time.Time{}, buildInputByLevel(lager.DEBUG))
+
+						prettyLog := prettify.Prettify(logMessage)
+
+						var outputExpects []string
+						outputExpects = append(outputExpects, regexSafe(""))
+						outputExpects = append(outputExpects, regexSafe(colors.ColorGray))
+						outputExpects = append(outputExpects, regexSafe("[DEBUG]"))
+						outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
+						outputExpects = append(outputExpects, regexSafe(""))
+						regexPattern := strings.Join(outputExpects, ".*")
+
+						Expect(prettyLog).To(MatchRegexp(regexPattern))
+					})
+
+					It("colors the ERROR as Red", func() {
+						logMessage := buildLogMessage("", "", time.Time{}, buildInputByLevel(lager.ERROR))
+
+						prettyLog := prettify.Prettify(logMessage)
+
+						var outputExpects []string
+						outputExpects = append(outputExpects, regexSafe(""))
+						outputExpects = append(outputExpects, regexSafe(colors.ColorRed))
+						outputExpects = append(outputExpects, regexSafe("[ERROR]"))
+						outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
+						outputExpects = append(outputExpects, regexSafe(""))
+						regexPattern := strings.Join(outputExpects, ".*")
+
+						Expect(prettyLog).To(MatchRegexp(regexPattern))
+					})
+
+					It("colors the FATAL as Red", func() {
+						logMessage := buildLogMessage("", "", time.Time{}, buildInputByLevel(lager.FATAL))
+
+						prettyLog := prettify.Prettify(logMessage)
+
+						var outputExpects []string
+						outputExpects = append(outputExpects, regexSafe(""))
+						outputExpects = append(outputExpects, regexSafe(colors.ColorRed))
+						outputExpects = append(outputExpects, regexSafe("[FATAL]"))
+
+						outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
+						outputExpects = append(outputExpects, regexSafe(""))
+						regexPattern := strings.Join(outputExpects, ".*")
+						Expect(prettyLog).To(MatchRegexp(regexPattern))
+					})
+				})
 			})
 
-			It("chooses color based on file component of sourceType path", func() {
-				input = []byte(`{"timestamp":"1429296198.620077372","source":"/var/vcap/packages/rep/bin/rep","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":1,"data":{}}`)
-				logMessage := buildLogMessage("/var/vcap/packages/rep/bin/rep", "cell-77", time.Time{}, input)
+			Context("when $TERM is not set", func() {
+				var previousTerm string
 
-				prettyLog := prettify.Prettify(logMessage)
+				BeforeEach(func() {
+					previousTerm = os.Getenv("TERM")
+					Expect(os.Unsetenv("TERM")).To(Succeed())
+				})
 
-				Expect(prettyLog).To(MatchRegexp(strings.Replace(colors.Colorize("\x1b[34m", "rep"), "[", `\[`, -1)))
-			})
+				AfterEach(func() {
+					Expect(os.Setenv("TERM", previousTerm)).To(Succeed())
+				})
 
-			Context("when the source type is unknown", func() {
 				It("doesn't highlight the source type column", func() {
-					input = []byte(`{"timestamp":"1429296198.620077372","source":"happyjoy","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":1,"data":{"container-guid":"app-9eb203ad-72f3-4f26-6424-48f20dc12298","session":"7.1.10"}}`)
-					logMessage := buildLogMessage("happyjoy", "", time.Time{}, input)
+					input = []byte(`{"timestamp":"1429296198.620077372","source":"rep","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":1,"data":{}}`)
+					logMessage := buildLogMessage("rep", "cell-77", time.Time{}, input)
 
 					prettyLog := prettify.Prettify(logMessage)
 
-					Expect(prettyLog).To(ContainSubstring(`[happyjoy|`))
-				})
-			})
-
-			Context("for the various log levels", func() {
-
-				buildInputByLevel := func(logLevel lager.LogLevel) []byte {
-					inputPrefix := `{"timestamp":"1429296198.620077372","source":"rep","message":"rep.event-consumer.operation-stream.executing-container-operation.succeeded-fetch-container","log_level":`
-					inputSuffix := `,"data":{}}`
-
-					var inputMessage []string
-					inputMessage = append(inputMessage, inputPrefix)
-					inputMessage = append(inputMessage, fmt.Sprint(logLevel))
-					inputMessage = append(inputMessage, inputSuffix)
-					return []byte(strings.Join(inputMessage, ""))
-				}
-
-				It("colors the INFO with SourceType-specific color", func() {
-					logMessage := buildLogMessage("generic", "instance", time.Time{}, buildInputByLevel(lager.INFO))
-
-					prettyLog := prettify.Prettify(logMessage)
-
-					var outputExpects []string
-					outputExpects = append(outputExpects, regexSafe(""))
-					outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
-					outputExpects = append(outputExpects, regexSafe("[INFO]"))
-					outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
-					outputExpects = append(outputExpects, regexSafe(""))
-					regexPattern := strings.Join(outputExpects, ".*")
-
-					// TODO: there are other default color tokens in this string, improve test
-					Expect(prettyLog).To(MatchRegexp(regexPattern))
-				})
-
-				It("colors the DEBUG as Gray", func() {
-					logMessage := buildLogMessage("", "", time.Time{}, buildInputByLevel(lager.DEBUG))
-
-					prettyLog := prettify.Prettify(logMessage)
-
-					var outputExpects []string
-					outputExpects = append(outputExpects, regexSafe(""))
-					outputExpects = append(outputExpects, regexSafe(colors.ColorGray))
-					outputExpects = append(outputExpects, regexSafe("[DEBUG]"))
-					outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
-					outputExpects = append(outputExpects, regexSafe(""))
-					regexPattern := strings.Join(outputExpects, ".*")
-
-					Expect(prettyLog).To(MatchRegexp(regexPattern))
-				})
-
-				It("colors the ERROR as Red", func() {
-					logMessage := buildLogMessage("", "", time.Time{}, buildInputByLevel(lager.ERROR))
-
-					prettyLog := prettify.Prettify(logMessage)
-
-					var outputExpects []string
-					outputExpects = append(outputExpects, regexSafe(""))
-					outputExpects = append(outputExpects, regexSafe(colors.ColorRed))
-					outputExpects = append(outputExpects, regexSafe("[ERROR]"))
-					outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
-					outputExpects = append(outputExpects, regexSafe(""))
-					regexPattern := strings.Join(outputExpects, ".*")
-
-					Expect(prettyLog).To(MatchRegexp(regexPattern))
-				})
-
-				It("colors the FATAL as Red", func() {
-					logMessage := buildLogMessage("", "", time.Time{}, buildInputByLevel(lager.FATAL))
-
-					prettyLog := prettify.Prettify(logMessage)
-
-					var outputExpects []string
-					outputExpects = append(outputExpects, regexSafe(""))
-					outputExpects = append(outputExpects, regexSafe(colors.ColorRed))
-					outputExpects = append(outputExpects, regexSafe("[FATAL]"))
-
-					outputExpects = append(outputExpects, regexSafe(colors.ColorDefault))
-					outputExpects = append(outputExpects, regexSafe(""))
-					regexPattern := strings.Join(outputExpects, ".*")
-					Expect(prettyLog).To(MatchRegexp(regexPattern))
+					Expect(prettyLog).To(ContainSubstring("[rep|"))
 				})
 			})
 		})
