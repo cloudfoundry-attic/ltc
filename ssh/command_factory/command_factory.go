@@ -2,6 +2,7 @@ package command_factory
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/cloudfoundry-incubator/ltc/app_examiner"
@@ -33,10 +34,15 @@ func NewSSHCommandFactory(config *config_package.Config, ui terminal.UI, exitHan
 }
 
 func (f *SSHCommandFactory) MakeSSHCommand() cli.Command {
+	helpText := "ltc ssh APP_NAME [[--] optional command with args]\n\n   If a command is specified, no interactive shell will be provided.\n   A \"--\" token should be provided to avoid parsing of command flags.\n"
+	if runtime.GOOS == "windows" {
+		helpText = helpText + "\n   ltc ssh requires a proper terminal and will not function properly from the default Windows command shells (Cmd, Powershell). We recommend using either Cygwin or Git Bash as an alternative.\n"
+	}
+
 	return cli.Command{
 		Name:        "ssh",
 		Usage:       "Connects to a running app",
-		Description: "ltc ssh APP_NAME [[--] optional command with args]\n\n   If a command is specified, no interactive shell will be provided.\n   A \"--\" token should be provided to avoid parsing of command flags.\n",
+		Description: helpText,
 		Action:      f.ssh,
 		Flags: []cli.Flag{
 			cli.IntFlag{
