@@ -23,7 +23,7 @@ type VersionCommandFactory struct {
 type VersionManager interface {
 	SyncLTC(ltcPath string, arch string, config *config_package.Config) error
 	ServerVersions() (version.ServerVersions, error)
-	LtcVersion() string
+	LatticeVersion() string
 }
 
 func NewVersionCommandFactory(config *config_package.Config, ui terminal.UI, exitHandler exit_handler.ExitHandler, arch string, ltcPath string, versionManager VersionManager) *VersionCommandFactory {
@@ -84,7 +84,7 @@ func (f *VersionCommandFactory) syncLTC(context *cli.Context) {
 }
 
 func (f *VersionCommandFactory) version(context *cli.Context) {
-	f.ui.SayLine("Client version: " + f.versionManager.LtcVersion())
+	f.ui.SayLine("Client version: " + f.versionManager.LatticeVersion())
 
 	serverVersions, err := f.versionManager.ServerVersions()
 	if err != nil {

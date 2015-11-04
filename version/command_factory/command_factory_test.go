@@ -36,7 +36,7 @@ var _ = Describe("Version CommandFactory", func() {
 		terminalUI = terminal.NewUI(nil, outputBuffer, nil)
 		fakeExitHandler = &fake_exit_handler.FakeExitHandler{}
 		fakeVersionManager = &fake_version_manager.FakeVersionManager{}
-		fakeVersionManager.LtcVersionReturns("1.8.0")
+		fakeVersionManager.LatticeVersionReturns("1.8.0")
 		commandFactory = command_factory.NewVersionCommandFactory(
 			config,
 			terminalUI,

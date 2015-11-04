@@ -93,7 +93,7 @@ OPTIONS:
 
 func MakeCliApp(
 	diegoVersion string,
-	ltcVersion string,
+	latticeVersion string,
 	ltcConfigRoot string,
 	exitHandler exit_handler.ExitHandler,
 	config *config.Config,
@@ -106,7 +106,7 @@ func MakeCliApp(
 	app := cli.NewApp()
 	app.Name = AppName
 	app.Author = latticeCliAuthor
-	app.Version = defaultVersion(diegoVersion, ltcVersion)
+	app.Version = defaultVersion(diegoVersion, latticeVersion)
 	app.Usage = LtcUsage
 	app.Email = "cf-lattice@lists.cloudfoundry.org"
 
@@ -140,11 +140,11 @@ func MakeCliApp(
 		ui.SayLine(fmt.Sprintf(unknownCommand, command))
 		exitHandler.Exit(1)
 	}
-	app.Commands = cliCommands(ltcConfigRoot, exitHandler, config, logger, receptorClientCreator, targetVerifier, ui, ltcVersion)
+	app.Commands = cliCommands(ltcConfigRoot, exitHandler, config, logger, receptorClientCreator, targetVerifier, ui, latticeVersion)
 	return app
 }
 
-func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, config *config.Config, logger lager.Logger, receptorClientCreator receptor_client.Creator, targetVerifier target_verifier.TargetVerifier, ui terminal.UI, ltcVersion string) []cli.Command {
+func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, config *config.Config, logger lager.Logger, receptorClientCreator receptor_client.Creator, targetVerifier target_verifier.TargetVerifier, ui terminal.UI, latticeVersion string) []cli.Command {
 	receptorClient := receptorClientCreator.CreateReceptorClient(config.Receptor())
 	noaaConsumer := noaa.NewConsumer(LoggregatorUrl(config.Loggregator()), nil, nil)
 	appRunner := app_runner.New(receptorClient, config.Target(), &keygen_package.KeyGenerator{RandReader: rand.Reader})
@@ -212,7 +212,7 @@ func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, con
 	zipper := &zipper_package.DropletArtifactZipper{}
 	dropletRunnerCommandFactory := droplet_runner_command_factory.NewDropletRunnerCommandFactory(*appRunnerCommandFactory, blobStoreVerifier, taskExaminer, dropletRunner, cfIgnore, zipper, config)
 
-	versionManager := version.NewVersionManager(receptorClient, &version.AppFileSwapper{}, defaultLtcVersion(ltcVersion))
+	versionManager := version.NewVersionManager(receptorClient, &version.AppFileSwapper{}, defaultLatticeVersion(latticeVersion))
 	configCommandFactory := config_command_factory.NewConfigCommandFactory(config, ui, targetVerifier, blobStoreVerifier, exitHandler, versionManager)
 
 	sshCommandFactory := ssh_command_factory.NewSSHCommandFactory(config, ui, exitHandler, appExaminer, ssh.New(exitHandler))
@@ -269,15 +269,15 @@ func defaultDiegoVersion(diegoVersion string) string {
 	}
 	return diegoVersion
 }
-func defaultLtcVersion(ltcVersion string) string {
-	if ltcVersion == "" {
-		ltcVersion = "development (not versioned)"
+func defaultLatticeVersion(latticeVersion string) string {
+	if latticeVersion == "" {
+		latticeVersion = "development (not versioned)"
 	}
-	return ltcVersion
+	return latticeVersion
 }
 
-func defaultVersion(diegoVersion, ltcVersion string) string {
-	return fmt.Sprintf("%s (diego %s)", defaultLtcVersion(ltcVersion), defaultDiegoVersion(diegoVersion))
+func defaultVersion(diegoVersion, latticeVersion string) string {
+	return fmt.Sprintf("%s (diego %s)", defaultLatticeVersion(latticeVersion), defaultDiegoVersion(diegoVersion))
 }
 
 func appHelpTemplate() string {

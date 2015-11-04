@@ -31,21 +31,21 @@ type ServerVersions struct {
 type VersionManager interface {
 	SyncLTC(ltcPath string, arch string, config *config_package.Config) error
 	ServerVersions() (ServerVersions, error)
-	LtcVersion() string
+	LatticeVersion() string
 	LtcMatchesServer() (bool, error)
 }
 
 type versionManager struct {
 	receptorClient receptor.Client
 	fileSwapper    FileSwapper
-	ltcVersion     string
+	latticeVersion string
 }
 
-func NewVersionManager(receptorClient receptor.Client, fileSwapper FileSwapper, ltcVersion string) *versionManager {
+func NewVersionManager(receptorClient receptor.Client, fileSwapper FileSwapper, latticeVersion string) *versionManager {
 	return &versionManager{
 		receptorClient,
 		fileSwapper,
-		ltcVersion,
+		latticeVersion,
 	}
 }
 
@@ -94,8 +94,8 @@ func (s *versionManager) SyncLTC(ltcPath string, arch string, config *config_pac
 	return nil
 }
 
-func (s *versionManager) LtcVersion() string {
-	return s.ltcVersion
+func (s *versionManager) LatticeVersion() string {
+	return s.latticeVersion
 }
 
 func (s *versionManager) LtcMatchesServer() (bool, error) {
@@ -104,6 +104,6 @@ func (s *versionManager) LtcMatchesServer() (bool, error) {
 		return false, err
 	}
 
-	match := (serverVersions.Ltc == s.LtcVersion())
+	match := (serverVersions.LatticeRelease == s.LatticeVersion())
 	return match, nil
 }

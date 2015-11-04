@@ -22,20 +22,20 @@ type FakeVersionManager struct {
 	ServerVersionsStub        func() (version.ServerVersions, error)
 	serverVersionsMutex       sync.RWMutex
 	serverVersionsArgsForCall []struct{}
-	serverVersionsReturns     struct {
+	serverVersionsReturns struct {
 		result1 version.ServerVersions
 		result2 error
 	}
-	LtcVersionStub        func() string
-	ltcVersionMutex       sync.RWMutex
-	ltcVersionArgsForCall []struct{}
-	ltcVersionReturns     struct {
+	LatticeVersionStub        func() string
+	latticeVersionMutex       sync.RWMutex
+	latticeVersionArgsForCall []struct{}
+	latticeVersionReturns struct {
 		result1 string
 	}
 	LtcMatchesServerStub        func() (bool, error)
 	ltcMatchesServerMutex       sync.RWMutex
 	ltcMatchesServerArgsForCall []struct{}
-	ltcMatchesServerReturns     struct {
+	ltcMatchesServerReturns struct {
 		result1 bool
 		result2 error
 	}
@@ -100,26 +100,26 @@ func (fake *FakeVersionManager) ServerVersionsReturns(result1 version.ServerVers
 	}{result1, result2}
 }
 
-func (fake *FakeVersionManager) LtcVersion() string {
-	fake.ltcVersionMutex.Lock()
-	fake.ltcVersionArgsForCall = append(fake.ltcVersionArgsForCall, struct{}{})
-	fake.ltcVersionMutex.Unlock()
-	if fake.LtcVersionStub != nil {
-		return fake.LtcVersionStub()
+func (fake *FakeVersionManager) LatticeVersion() string {
+	fake.latticeVersionMutex.Lock()
+	fake.latticeVersionArgsForCall = append(fake.latticeVersionArgsForCall, struct{}{})
+	fake.latticeVersionMutex.Unlock()
+	if fake.LatticeVersionStub != nil {
+		return fake.LatticeVersionStub()
 	} else {
-		return fake.ltcVersionReturns.result1
+		return fake.latticeVersionReturns.result1
 	}
 }
 
-func (fake *FakeVersionManager) LtcVersionCallCount() int {
-	fake.ltcVersionMutex.RLock()
-	defer fake.ltcVersionMutex.RUnlock()
-	return len(fake.ltcVersionArgsForCall)
+func (fake *FakeVersionManager) LatticeVersionCallCount() int {
+	fake.latticeVersionMutex.RLock()
+	defer fake.latticeVersionMutex.RUnlock()
+	return len(fake.latticeVersionArgsForCall)
 }
 
-func (fake *FakeVersionManager) LtcVersionReturns(result1 string) {
-	fake.LtcVersionStub = nil
-	fake.ltcVersionReturns = struct {
+func (fake *FakeVersionManager) LatticeVersionReturns(result1 string) {
+	fake.LatticeVersionStub = nil
+	fake.latticeVersionReturns = struct {
 		result1 string
 	}{result1}
 }

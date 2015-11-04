@@ -205,10 +205,10 @@ var _ = Describe("VersionManager", func() {
 		})
 	})
 
-	Describe("#LtcVersion", func() {
-		It("should return its ltcVersion", func() {
+	Describe("#LatticeVersion", func() {
+		It("should return its latticeVersion", func() {
 			versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "some-version")
-			Expect(versionManager.LtcVersion()).To(Equal("some-version"))
+			Expect(versionManager.LatticeVersion()).To(Equal("some-version"))
 		})
 	})
 
@@ -226,14 +226,14 @@ var _ = Describe("VersionManager", func() {
 			}, nil)
 		})
 
-		Context("when the local ltc version matches the server's expected version", func() {
+		Context("when the local lattice version matches the server's expected version", func() {
 			It("should return true", func() {
-				versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "v225")
+				versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "v223")
 				Expect(versionManager.LtcMatchesServer()).To(BeTrue())
 			})
 		})
 
-		Context("when the local ltc version does not match the server's expected version", func() {
+		Context("when the local lattice version does not match the server's expected version", func() {
 			It("should return false", func() {
 				versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "mismatched-version")
 				Expect(versionManager.LtcMatchesServer()).To(BeFalse())

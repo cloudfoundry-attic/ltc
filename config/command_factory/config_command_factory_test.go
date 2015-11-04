@@ -482,7 +482,7 @@ var _ = Describe("CommandFactory", func() {
 			BeforeEach(func() {
 				fakeTargetVerifier.VerifyTargetReturns(true, true, nil)
 				fakeBlobStoreVerifier.VerifyReturns(true, nil)
-				fakeVersionManager.LtcVersionReturns("some-version")
+				fakeVersionManager.LatticeVersionReturns("some-version")
 			})
 
 			It("should print warning and recommend sync if ltc version does not match server", func() {

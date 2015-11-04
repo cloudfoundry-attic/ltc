@@ -145,7 +145,7 @@ func (factory *ConfigCommandFactory) verifyBlobStore() bool {
 func (f *ConfigCommandFactory) checkVersions() {
 	ltcMatchesServer, err := f.versionManager.LtcMatchesServer()
 	if !ltcMatchesServer {
-		f.ui.SayLine(fmt.Sprintf("WARNING: local ltc version (%s) does not match target expected version.", f.versionManager.LtcVersion()))
+		f.ui.SayLine(fmt.Sprintf("WARNING: local ltc version (%s) does not match target expected version.", f.versionManager.LatticeVersion()))
 
 		if err == nil {
 			f.ui.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version.")
