@@ -41,7 +41,7 @@ func (f *VersionCommandFactory) MakeSyncCommand() cli.Command {
 
 func (f *VersionCommandFactory) MakeVersionCommand() cli.Command {
 	return cli.Command{
-		Name:        "version",
+		Name:        "version, vr",
 		Usage:       "Returns CLI and server versions",
 		Description: "ltc version",
 		Action:      f.version,
@@ -84,7 +84,7 @@ func (f *VersionCommandFactory) syncLTC(context *cli.Context) {
 }
 
 func (f *VersionCommandFactory) version(context *cli.Context) {
-	f.ui.SayLine("Client version: " + f.versionManager.LatticeVersion())
+	f.ui.SayLine("Client: " + f.versionManager.LatticeVersion())
 
 	serverVersions, err := f.versionManager.ServerVersions()
 	if err != nil {
@@ -93,11 +93,10 @@ func (f *VersionCommandFactory) version(context *cli.Context) {
 		return
 	}
 
-	f.ui.SayLine("CF release version: " + serverVersions.CfRelease)
-	f.ui.SayLine("CF routing release version: " + serverVersions.CfRoutingRelease)
-	f.ui.SayLine("Diego release version: " + serverVersions.DiegoRelease)
-	f.ui.SayLine("Garden linux release version: " + serverVersions.GardenLinuxRelease)
-	f.ui.SayLine("Lattice release version: " + serverVersions.LatticeRelease)
-	f.ui.SayLine("Lattice release image version: " + serverVersions.LatticeReleaseImage)
-	f.ui.SayLine("Receptor version: " + serverVersions.Receptor)
+	f.ui.SayLine("Server: " + serverVersions.LatticeRelease)
+	f.ui.SayLine("\tImage: " + serverVersions.LatticeReleaseImage)
+	f.ui.SayLine("\tCF: " + serverVersions.CfRelease)
+	f.ui.SayLine("\tDiego: " + serverVersions.DiegoRelease)
+	f.ui.SayLine("\tGarden-Linux: " + serverVersions.GardenLinuxRelease)
+	f.ui.SayLine("\tRouting: " + serverVersions.CfRoutingRelease)
 }

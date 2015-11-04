@@ -36,7 +36,7 @@ var _ = Describe("Version CommandFactory", func() {
 		terminalUI = terminal.NewUI(nil, outputBuffer, nil)
 		fakeExitHandler = &fake_exit_handler.FakeExitHandler{}
 		fakeVersionManager = &fake_version_manager.FakeVersionManager{}
-		fakeVersionManager.LatticeVersionReturns("1.8.0")
+		fakeVersionManager.LatticeVersionReturns("some-client-lattice-sha")
 		commandFactory = command_factory.NewVersionCommandFactory(
 			config,
 			terminalUI,
@@ -56,8 +56,8 @@ var _ = Describe("Version CommandFactory", func() {
 				CfRoutingRelease:    "v220",
 				DiegoRelease:        "v221",
 				GardenLinuxRelease:  "v222",
-				LatticeRelease:      "v223",
-				LatticeReleaseImage: "v224",
+				LatticeRelease:      "some-server-lattice-sha",
+				LatticeReleaseImage: "some-server-lattice-image-sha",
 				Ltc:                 "v225",
 				Receptor:            "v226",
 			}, nil)
@@ -66,14 +66,13 @@ var _ = Describe("Version CommandFactory", func() {
 		It("Prints the CLI and API versions", func() {
 			test_helpers.ExecuteCommandWithArgs(versionCommand, []string{})
 
-			Expect(outputBuffer).To(test_helpers.SayLine("Client version: 1.8.0"))
-			Expect(outputBuffer).To(test_helpers.SayLine("CF release version: v219"))
-			Expect(outputBuffer).To(test_helpers.SayLine("CF routing release version: v220"))
-			Expect(outputBuffer).To(test_helpers.SayLine("Diego release version: v221"))
-			Expect(outputBuffer).To(test_helpers.SayLine("Garden linux release version: v222"))
-			Expect(outputBuffer).To(test_helpers.SayLine("Lattice release version: v223"))
-			Expect(outputBuffer).To(test_helpers.SayLine("Lattice release image version: v224"))
-			Expect(outputBuffer).To(test_helpers.SayLine("Receptor version: v226"))
+			Expect(outputBuffer).To(test_helpers.SayLine("Client: some-client-lattice-sha"))
+			Expect(outputBuffer).To(test_helpers.SayLine("Server: some-server-lattice-sha"))
+			Expect(outputBuffer).To(test_helpers.SayLine("\tImage: some-server-lattice-image-sha"))
+			Expect(outputBuffer).To(test_helpers.SayLine("\tCF: v219"))
+			Expect(outputBuffer).To(test_helpers.SayLine("\tDiego: v221"))
+			Expect(outputBuffer).To(test_helpers.SayLine("\tGarden-Linux: v222"))
+			Expect(outputBuffer).To(test_helpers.SayLine("\tRouting: v220"))
 		})
 
 		Context("when the version manager returns an error", func() {
