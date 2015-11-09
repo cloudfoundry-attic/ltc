@@ -41,7 +41,8 @@ func (f *VersionCommandFactory) MakeSyncCommand() cli.Command {
 
 func (f *VersionCommandFactory) MakeVersionCommand() cli.Command {
 	return cli.Command{
-		Name:        "version, vr",
+		Name:        "version",
+		Aliases:     []string{"vr"},
 		Usage:       "Returns CLI and server versions",
 		Description: "ltc version",
 		Action:      f.version,
