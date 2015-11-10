@@ -1,25 +1,46 @@
 package cursor
 
 import "fmt"
+import "os"
 
 const csi = "\033["
 
 func Up(lines int) string {
-	return fmt.Sprintf("%s%dA", csi, lines)
+	if os.Getenv("TERM") == "" {
+		return ""
+	} else {
+		return fmt.Sprintf("%s%dA", csi, lines)
+	}
 }
 
 func ClearToEndOfLine() string {
-	return fmt.Sprintf("%s%dK", csi, 0)
+	if os.Getenv("TERM") == "" {
+		return ""
+	} else {
+		return fmt.Sprintf("%s%dK", csi, 0)
+	}
 }
 
 func ClearToEndOfDisplay() string {
-	return fmt.Sprintf("%s%dJ", csi, 0)
+	if os.Getenv("TERM") == "" {
+		return ""
+	} else {
+		return fmt.Sprintf("%s%dJ", csi, 0)
+	}
 }
 
 func Show() string {
-	return csi + "?25h"
+	if os.Getenv("TERM") == "" {
+		return ""
+	} else {
+		return csi + "?25h"
+	}
 }
 
 func Hide() string {
-	return csi + "?25l"
+	if os.Getenv("TERM") == "" {
+		return ""
+	} else {
+		return csi + "?25l"
+	}
 }

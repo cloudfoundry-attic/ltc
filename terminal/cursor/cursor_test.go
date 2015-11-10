@@ -1,6 +1,8 @@
 package cursor_test
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -35,6 +37,21 @@ var _ = Describe("cursor", func() {
 	Describe("Hide", func() {
 		It("hides the cursor", func() {
 			Expect(cursor.Hide()).To(Equal("\033[?25l"))
+		})
+	})
+
+	Context("When there is no TERM", func() {
+		It("should return an empty string", func() {
+			previousTerm := os.Getenv("TERM")
+			Expect(os.Unsetenv("TERM")).To(Succeed())
+
+			Expect(cursor.Up(2)).To(Equal(""))
+			Expect(cursor.ClearToEndOfLine()).To(Equal(""))
+			Expect(cursor.ClearToEndOfDisplay()).To(Equal(""))
+			Expect(cursor.Show()).To(Equal(""))
+			Expect(cursor.Hide()).To(Equal(""))
+
+			Expect(os.Setenv("TERM", previousTerm)).To(Succeed())
 		})
 	})
 })
