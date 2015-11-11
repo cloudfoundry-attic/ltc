@@ -34,7 +34,7 @@ func (factory *TaskRunnerCommandFactory) MakeSubmitTaskCommand() cli.Command {
 		Name:        "submit-task",
 		Aliases:     []string{"su"},
 		Usage:       "Submits a task from JSON on lattice",
-		Description: "ltc submit-task /path/to/json",
+		Description: "ltc submit-task <json-path>",
 		Action:      factory.submitTask,
 	}
 
@@ -46,7 +46,7 @@ func (factory *TaskRunnerCommandFactory) MakeDeleteTaskCommand() cli.Command {
 		Name:        "delete-task",
 		Aliases:     []string{"dt"},
 		Usage:       "Deletes the given task",
-		Description: "ltc delete-task TASK_GUID",
+		Description: "ltc delete-task <task-guid>",
 		Action:      factory.deleteTask,
 		Flags:       []cli.Flag{},
 	}
@@ -58,7 +58,7 @@ func (factory *TaskRunnerCommandFactory) MakeCancelTaskCommand() cli.Command {
 		Name:        "cancel-task",
 		Aliases:     []string{"ct"},
 		Usage:       "Cancels the given task",
-		Description: "ltc cancel-task TASK_GUID",
+		Description: "ltc cancel-task <task-guid>",
 		Action:      factory.cancelTask,
 		Flags:       []cli.Flag{},
 	}
@@ -92,7 +92,7 @@ func (factory *TaskRunnerCommandFactory) submitTask(context *cli.Context) {
 func (factory *TaskRunnerCommandFactory) deleteTask(context *cli.Context) {
 	taskGuid := context.Args().First()
 	if taskGuid == "" {
-		factory.ui.SayIncorrectUsage("Please input a valid TASK_GUID")
+		factory.ui.SayIncorrectUsage("Please input a valid <task-guid>")
 		factory.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -108,7 +108,7 @@ func (factory *TaskRunnerCommandFactory) deleteTask(context *cli.Context) {
 func (factory *TaskRunnerCommandFactory) cancelTask(context *cli.Context) {
 	taskGuid := context.Args().First()
 	if taskGuid == "" {
-		factory.ui.SayIncorrectUsage("Please input a valid TASK_GUID")
+		factory.ui.SayIncorrectUsage("Please input a valid <task-guid>")
 		factory.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}

@@ -91,7 +91,7 @@ func (factory *AppExaminerCommandFactory) MakeVisualizeCommand() cli.Command {
 		Name:        "visualize",
 		Aliases:     []string{"vz"},
 		Usage:       "Visualizes the workload distribution across the lattice cells",
-		Description: "ltc visualize [-r=DELAY] [-g]",
+		Description: "ltc visualize [-r=<delay>] [-g]",
 		Action:      factory.visualizeCells,
 		Flags:       visualizeFlags,
 	}
@@ -115,7 +115,7 @@ func (factory *AppExaminerCommandFactory) MakeStatusCommand() cli.Command {
 		Name:        "status",
 		Aliases:     []string{"st"},
 		Usage:       "Shows details about a running app on lattice",
-		Description: "ltc status APP_NAME",
+		Description: "ltc status <app-name>",
 		Action:      factory.appStatus,
 		Flags:       statusFlags,
 	}
@@ -273,7 +273,7 @@ func (factory *AppExaminerCommandFactory) appStatus(context *cli.Context) {
 	rateFlag := context.Duration("rate")
 
 	if len(context.Args()) < 1 {
-		factory.ui.SayIncorrectUsage("App Name required")
+		factory.ui.SayIncorrectUsage("<app-name> required")
 		factory.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}

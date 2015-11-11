@@ -394,7 +394,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 				args := []string{""}
 				test_helpers.ExecuteCommandWithArgs(scaleCommand, args)
 
-				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: Please enter 'ltc scale APP_NAME NUMBER_OF_INSTANCES'"))
+				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: Please enter 'ltc scale <app-name> <number-of-instances>'"))
 				Expect(fakeAppRunner.ScaleAppCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})
@@ -403,7 +403,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 				args := []string{"cool-web-app"}
 				test_helpers.ExecuteCommandWithArgs(scaleCommand, args)
 
-				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: Please enter 'ltc scale APP_NAME NUMBER_OF_INSTANCES'"))
+				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: Please enter 'ltc scale <app-name> <number-of-instances>'"))
 				Expect(fakeAppRunner.ScaleAppCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})
@@ -556,7 +556,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 					It("prints usage message", func() {
 						test_helpers.ExecuteCommandWithArgs(updateCommand, []string{})
 
-						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
+						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
 						Expect(fakeAppRunner.UpdateAppCallCount()).To(Equal(0))
 						Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 					})
@@ -567,7 +567,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 						args := []string{"--http-route=foo.com:8080", "-http-route=bar.com:9090"}
 						test_helpers.ExecuteCommandWithArgs(updateCommand, args)
 
-						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
+						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
 						Expect(fakeAppRunner.UpdateAppCallCount()).To(Equal(0))
 						Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 					})
@@ -578,7 +578,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 						args := []string{"--tcp-route=50000:5222", "--tcp-route=51000:6379"}
 						test_helpers.ExecuteCommandWithArgs(updateCommand, args)
 
-						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
+						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
 						Expect(fakeAppRunner.UpdateAppCallCount()).To(Equal(0))
 						Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 					})
@@ -589,7 +589,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 						args := []string{"--tcp-route=50000:5222", "--tcp-route=51000:6379", "--http-route=foo.com:8080", "--http-route=bar.com:9090"}
 						test_helpers.ExecuteCommandWithArgs(updateCommand, args)
 
-						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
+						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
 						Expect(fakeAppRunner.UpdateAppCallCount()).To(Equal(0))
 						Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 					})
@@ -600,7 +600,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 						args := []string{"--no-routes"}
 						test_helpers.ExecuteCommandWithArgs(updateCommand, args)
 
-						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
+						Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
 						Expect(fakeAppRunner.UpdateAppCallCount()).To(Equal(0))
 						Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 					})
@@ -634,7 +634,7 @@ var _ = Describe("AppRunner CommandFactory", func() {
 					args := []string{"cool-web-app"}
 					test_helpers.ExecuteCommandWithArgs(updateCommand, args)
 
-					Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
+					Expect(outputBuffer).To(test_helpers.SayLine("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag."))
 				})
 			})
 		})

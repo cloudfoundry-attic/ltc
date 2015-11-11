@@ -110,7 +110,7 @@ func (factory *DockerRunnerCommandFactory) MakeCreateAppCommand() cli.Command {
 		cli.StringFlag{
 			Name: "monitor-url, U",
 			Usage: "Uses HTTP to healthcheck the app\n\t\t" +
-				"format is: port:/path/to/endpoint",
+				"format is: <port>:<endpoint-path>",
 		},
 		cli.DurationFlag{
 			Name:  "monitor-timeout",
@@ -123,11 +123,11 @@ func (factory *DockerRunnerCommandFactory) MakeCreateAppCommand() cli.Command {
 		},
 		cli.StringSliceFlag{
 			Name:  "http-route, R",
-			Usage: "Requests for HOST on port 80 will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --http-route HOST:CONTAINER_PORT. Can be passed multiple times.",
+			Usage: "Requests for <host> on port 80 will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --http-route <host>:<container-port>. Can be passed multiple times.",
 		},
 		cli.StringSliceFlag{
 			Name:  "tcp-route, T",
-			Usage: "Requests for the provided external port will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --tcp-route EXTERNAL_PORT:CONTAINER_PORT. Can be passed multiple times.",
+			Usage: "Requests for the provided external port will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --tcp-route <external-port>:<container-port>. Can be passed multiple times.",
 		},
 		cli.IntFlag{
 			Name:  "instances, i",
@@ -161,40 +161,40 @@ func (factory *DockerRunnerCommandFactory) MakeCreateAppCommand() cli.Command {
 		Name:    "create",
 		Aliases: []string{"cr"},
 		Usage:   "Creates a docker app on lattice",
-		Description: `ltc create APP_NAME DOCKER_IMAGE
+		Description: `ltc create <app-name> <docker-image>
 
-   APP_NAME is required and must be unique across the Lattice cluster
-   DOCKER_IMAGE is required and must match the standard docker image format
+   <app-name> is required and must be unique across the Lattice cluster
+   <docker-image> is required and must match the standard docker image format
    e.g.
    		1. "cloudfoundry/lattice-app"
    		2. "redis" - for official images; resolves to library/redis
 
    ltc will fetch the command associated with your Docker image.
    To provide a custom command:
-   ltc create APP_NAME DOCKER_IMAGE <optional flags> -- START_COMMAND APP_ARG1 APP_ARG2 ...
+   ltc create <app-name> <docker-image> <optional flags> -- <start-command> <start-command-arg1> <start-command-arg2> ...
 
    ltc will also fetch the working directory associated with your Docker image.
    If the image does not specify a working directory, ltc will default the working directory to "/"
    To provide a custom working directory:
-   ltc create APP_NAME DOCKER_IMAGE --working-dir=/foo/app-folder -- START_COMMAND APP_ARG1 APP_ARG2 ...
+   ltc create <app-name> <docker-image> --working-dir=<working-dir> -- <start-command> <start-command-arg1> <start-command-arg2> ...
 
    To specify environment variables:
-   ltc create APP_NAME DOCKER_IMAGE -e FOO=BAR -e BAZ=WIBBLE
+   ltc create <app-name> <docker-image> -e FOO=<foo> -e BAZ=<baz>
 
    By default, http routes will be created for all container ports specified in the EXPOSE directive in
    the Docker image. E.g. for application myapp and a Docker image that specifies ports 80 and 8080,
    two http routes will be created by default:
 
-     - requests to myapp.SYSTEM_DOMAIN:80 will be routed to container port 80
-     - requests to myapp-8080.SYSTEM_DOMAIN:80 will be routed to container port 8080
+     - requests to myapp.<system-domain>:80 will be routed to container port 80
+     - requests to myapp-8080.<system-domain>:80 will be routed to container port 8080
 
    To configure your own routing:
-   ltc create APP_NAME DOCKER_IMAGE --http-route HOST:CONTAINER_PORT [ --http-route HOST:CONTAINER_PORT ...] --tcp-route EXTERNAL_PORT:CONTAINER_PORT [ --tcp-route EXTERNAL_PORT:CONTAINER_PORT ...]
+   ltc create <app-name> <docker-image> --http-route <host>:<container-port> [ --http-route <host>:<container-port> ...] --tcp-route <external-port>:<container-port> [ --tcp-route <external-port>:<container-port> ...]
 ]
 
    Examples:
-     ltc create myapp mydockerimage --http-route=myapp-admin:6000 will route requests received at myapp-admin.SYSTEM_DOMAIN:80 to container port 6000.
-     ltc create myredis redis --tcp-route=50000:6379 will route requests received at SYSTEM_DOMAIN:50000 to container port 6379.
+     ltc create myapp mydockerimage --http-route=myapp-admin:6000 will route requests received at myapp-admin.<system-domain>:80 to container port 6000.
+     ltc create myredis redis --tcp-route=50000:6379 will route requests received at <system-domain>:50000 to container port 6379.
 `,
 		Action: factory.createApp,
 		Flags:  createFlags,
@@ -231,7 +231,7 @@ func (factory *DockerRunnerCommandFactory) createApp(context *cli.Context) {
 	var appArgs []string
 	switch {
 	case len(context.Args()) < 2:
-		factory.UI.SayIncorrectUsage("APP_NAME and DOCKER_IMAGE are required")
+		factory.UI.SayIncorrectUsage("<app-name> and <docker-image> are required")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	case startCommand != "" && terminator != "--":

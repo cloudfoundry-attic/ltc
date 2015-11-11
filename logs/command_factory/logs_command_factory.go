@@ -35,7 +35,7 @@ func (factory *logsCommandFactory) MakeLogsCommand() cli.Command {
 		Name:        "logs",
 		Aliases:     []string{"lg"},
 		Usage:       "Streams logs from the specified application or task",
-		Description: "ltc logs APP_NAME",
+		Description: "ltc logs <app-name>",
 		Action:      factory.tailLogs,
 		Flags:       []cli.Flag{},
 	}
@@ -70,7 +70,7 @@ func (factory *logsCommandFactory) tailLogs(context *cli.Context) {
 	appGuid := context.Args().First()
 
 	if appGuid == "" {
-		factory.ui.SayIncorrectUsage("APP_NAME required")
+		factory.ui.SayIncorrectUsage("<app-name> required")
 		factory.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}

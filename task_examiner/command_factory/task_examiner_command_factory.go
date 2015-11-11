@@ -27,7 +27,7 @@ func (factory *TaskExaminerCommandFactory) MakeTaskCommand() cli.Command {
 		Name:        "task",
 		Aliases:     []string{"tk"},
 		Usage:       "Displays the status of a given task",
-		Description: "ltc task TASK_GUID",
+		Description: "ltc task <task-guid>",
 		Action:      factory.task,
 		Flags:       []cli.Flag{},
 	}
@@ -38,7 +38,7 @@ func (factory *TaskExaminerCommandFactory) MakeTaskCommand() cli.Command {
 func (factory *TaskExaminerCommandFactory) task(context *cli.Context) {
 	taskName := context.Args().First()
 	if taskName == "" {
-		factory.ui.SayIncorrectUsage("Please input a valid TASK_GUID")
+		factory.ui.SayIncorrectUsage("Please input a valid <task-guid>")
 		factory.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}

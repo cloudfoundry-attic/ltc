@@ -46,7 +46,7 @@ func (factory *ConfigCommandFactory) MakeTargetCommand() cli.Command {
 		Name:        "target",
 		Aliases:     []string{"ta"},
 		Usage:       "Targets a lattice cluster",
-		Description: "ltc target TARGET (e.g., 192.168.11.11.xip.io)",
+		Description: "ltc target <system-domain> (e.g., 192.168.11.11.xip.io)",
 		Action:      factory.target,
 		Flags:       targetFlags,
 	}

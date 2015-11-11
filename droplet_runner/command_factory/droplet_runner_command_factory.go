@@ -134,7 +134,7 @@ func (factory *DropletRunnerCommandFactory) MakeBuildDropletCommand() cli.Comman
 		Name:        "build-droplet",
 		Aliases:     []string{"bd"},
 		Usage:       "Builds app bits into a droplet using a CF buildpack",
-		Description: "ltc build-droplet DROPLET_NAME http://buildpack/uri",
+		Description: "ltc build-droplet <droplet-name> <buildpack-uri>",
 		Action:      factory.buildDroplet,
 		Flags:       launchFlags,
 	}
@@ -175,7 +175,7 @@ func (factory *DropletRunnerCommandFactory) MakeLaunchDropletCommand() cli.Comma
 		cli.StringFlag{
 			Name: "monitor-url, U",
 			Usage: "Uses HTTP to healthcheck the app\n\t\t" +
-				"format is: port:/path/to/endpoint",
+				"format is: <port>:<endpoint-path>",
 		},
 		cli.DurationFlag{
 			Name:  "monitor-timeout",
@@ -184,11 +184,11 @@ func (factory *DropletRunnerCommandFactory) MakeLaunchDropletCommand() cli.Comma
 		},
 		cli.StringSliceFlag{
 			Name:  "http-route, R",
-			Usage: "Requests for HOST on port 80 will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --http-route HOST:CONTAINER_PORT. Can be passed multiple times.",
+			Usage: "Requests for <host> on port 80 will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --http-route <host>:<container-port>. Can be passed multiple times.",
 		},
 		cli.StringSliceFlag{
 			Name:  "tcp-route, T",
-			Usage: "Requests for the provided external port will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --tcp-route EXTERNAL_PORT:CONTAINER_PORT. Can be passed multiple times.",
+			Usage: "Requests for the provided external port will be forwarded to the associated container port. Container ports must be among those specified with --ports or with the EXPOSE Docker image directive. Usage: --tcp-route <external-port>:<container-port>. Can be passed multiple times.",
 		},
 		cli.IntFlag{
 			Name:  "instances, i",
@@ -222,21 +222,21 @@ func (factory *DropletRunnerCommandFactory) MakeLaunchDropletCommand() cli.Comma
 		Name:    "launch-droplet",
 		Aliases: []string{"ld"},
 		Usage:   "Launches a droplet as an app running on lattice",
-		Description: `ltc launch-droplet APP_NAME DROPLET_NAME
+		Description: `ltc launch-droplet <app-name> <droplet-name>
 
    To provide a custom command:
-   ltc launch-droplet APP_NAME DROPLET_NAME <optional flags> -- START_COMMAND APP_ARG1 APP_ARG2 ...
+   ltc launch-droplet <app-name> <droplet-name> [<optional flags>] -- <start-command> <start-command-arg1> <start-command-arg2> ...
 
    Two http routes are created by default, both routing to container port 8080. E.g. for application myapp:
-     - requests to myapp.SYSTEM_DOMAIN:80 will be routed to container port 8080
-     - requests to myapp-8080.SYSTEM_DOMAIN:80 will be routed to container port 8080
+     - requests to myapp.<system-domain>:80 will be routed to container port 8080
+     - requests to myapp-8080.<system-domain>:80 will be routed to container port 8080
 
    To configure your own routing:
-     ltc launch-droplet APP_NAME DROPLET_NAME --http-route HOST:CONTAINER_PORT [ --http-route HOST:CONTAINER_PORT ...] --tcp-route EXTERNAL_PORT:CONTAINER_PORT [ --tcp-route EXTERNAL_PORT:CONTAINER_PORT ...]
+     ltc launch-droplet <app-name> <droplet-name> --http-route <host>:<container-port> [ --http-route <host>:<container-port> ...] --tcp-route <external-port>:<container-port> [ --tcp-route <external-port>:<container-port> ...]
 
      Examples:
-       ltc launch-droplet myapp ruby --http-route=myapp-admin:6000 will route requests received at myapp-admin.SYSTEM_DOMAIN:80 to container port 6000.
-       ltc launch-droplet myapp ruby --tcp-route=50000:6379 will route requests received at SYSTEM_DOMAIN:50000 to container port 6379.
+       ltc launch-droplet myapp ruby --http-route=myapp-admin:6000 will route requests received at myapp-admin.<system-domain>:80 to container port 6000.
+       ltc launch-droplet myapp ruby --tcp-route=50000:6379 will route requests received at <system-domain>:50000 to container port 6379.
 `,
 		Action: factory.launchDroplet,
 		Flags:  launchFlags,
@@ -250,7 +250,7 @@ func (factory *DropletRunnerCommandFactory) MakeRemoveDropletCommand() cli.Comma
 		Name:        "remove-droplet",
 		Aliases:     []string{"rd"},
 		Usage:       "Removes a droplet from the droplet store",
-		Description: "ltc remove-droplet DROPLET_NAME",
+		Description: "ltc remove-droplet <droplet-name>",
 		Action:      factory.removeDroplet,
 	}
 
@@ -262,7 +262,7 @@ func (factory *DropletRunnerCommandFactory) MakeImportDropletCommand() cli.Comma
 		Name:        "import-droplet",
 		Aliases:     []string{"id"},
 		Usage:       "Imports a droplet from disk to the droplet store",
-		Description: "ltc import-droplet DROPLET-NAME /path/droplet.tgz /path/result.json",
+		Description: "ltc import-droplet <droplet-name> <droplet-path> <metadata-path>",
 		Action:      factory.importDroplet,
 	}
 
@@ -274,7 +274,7 @@ func (factory *DropletRunnerCommandFactory) importDroplet(context *cli.Context) 
 	dropletPath := context.Args().Get(1)
 	metadataPath := context.Args().Get(2)
 	if dropletName == "" || dropletPath == "" || metadataPath == "" {
-		factory.UI.SayIncorrectUsage("DROPLET_NAME,DROPLET_PATH and METADATA_PATH are required")
+		factory.UI.SayIncorrectUsage("<droplet-name>, <droplet-path> and <metadata-path> are required")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -292,7 +292,7 @@ func (factory *DropletRunnerCommandFactory) MakeExportDropletCommand() cli.Comma
 		Name:        "export-droplet",
 		Aliases:     []string{"ed"},
 		Usage:       "Exports a droplet from the droplet store to disk",
-		Description: "ltc export-droplet DROPLET_NAME",
+		Description: "ltc export-droplet <droplet-name>",
 		Action:      factory.exportDroplet,
 	}
 
@@ -355,7 +355,7 @@ func (factory *DropletRunnerCommandFactory) buildDroplet(context *cli.Context) {
 	buildpack := context.Args().Get(1)
 
 	if dropletName == "" || buildpack == "" {
-		factory.UI.SayIncorrectUsage("DROPLET_NAME and BUILDPACK_URL are required")
+		factory.UI.SayIncorrectUsage("<droplet-name> and <buildpack-uri> are required")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -510,7 +510,7 @@ func (factory *DropletRunnerCommandFactory) launchDroplet(context *cli.Context) 
 
 	switch {
 	case len(context.Args()) < 2:
-		factory.UI.SayIncorrectUsage("APP_NAME and DROPLET_NAME are required")
+		factory.UI.SayIncorrectUsage("<app-name> and <droplet-name> are required")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	case startCommand != "" && terminator != "--":
@@ -596,7 +596,7 @@ func (factory *DropletRunnerCommandFactory) launchDroplet(context *cli.Context) 
 func (factory *DropletRunnerCommandFactory) removeDroplet(context *cli.Context) {
 	dropletName := context.Args().First()
 	if dropletName == "" {
-		factory.UI.SayIncorrectUsage("DROPLET_NAME is required")
+		factory.UI.SayIncorrectUsage("<droplet-name> is required")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -614,7 +614,7 @@ func (factory *DropletRunnerCommandFactory) removeDroplet(context *cli.Context) 
 func (factory *DropletRunnerCommandFactory) exportDroplet(context *cli.Context) {
 	dropletName := context.Args().First()
 	if dropletName == "" {
-		factory.UI.SayIncorrectUsage("DROPLET_NAME is required")
+		factory.UI.SayIncorrectUsage("<droplet-name> is required")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}

@@ -34,7 +34,7 @@ func NewSSHCommandFactory(config *config_package.Config, ui terminal.UI, exitHan
 }
 
 func (f *SSHCommandFactory) MakeSSHCommand() cli.Command {
-	helpText := "ltc ssh APP_NAME [[--] optional command with args]\n\n   If a command is specified, no interactive shell will be provided.\n   A \"--\" token should be provided to avoid parsing of command flags.\n"
+	helpText := "ltc ssh <app-name> [[--] optional command with args]\n\n   If a command is specified, no interactive shell will be provided.\n   A \"--\" token should be provided to avoid parsing of command flags.\n"
 	if runtime.GOOS == "windows" {
 		helpText = helpText + "\n   ltc ssh requires a pseudo-terminal and will not function properly from the default Windows command shells (Cmd, Powershell). We recommend using ltc ssh non-interactively: ltc ssh -- ps auxw\n"
 	}
@@ -52,7 +52,7 @@ func (f *SSHCommandFactory) MakeSSHCommand() cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "L",
-				Usage: "Listens on specified local address/port and forwards connections to specified remote address/port\n     \te.g. ltc ssh APP_NAME -L [localhost:]1234:remotehost:5678",
+				Usage: "Listens on specified local address/port and forwards connections to specified remote address/port\n     \te.g. ltc ssh <app-name> -L [localhost:]<local-port>:<remote-host>:<remote-port>",
 			},
 			cli.BoolFlag{
 				Name:  "N",
@@ -79,7 +79,7 @@ func (f *SSHCommandFactory) ssh(context *cli.Context) {
 	appName := context.Args().First()
 
 	if appName == "" {
-		f.ui.SayIncorrectUsage("Please input a valid APP_NAME")
+		f.ui.SayIncorrectUsage("Please input a valid <app-name>")
 		f.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -132,13 +132,13 @@ func (f *SSHCommandFactory) forward(localForward, appName string, instanceIndex 
 	case 4:
 		localHost, localPort, remoteHost, remotePort = parts[0], parts[1], parts[2], parts[3]
 	default:
-		f.ui.SayIncorrectUsage("-L expects [localhost:]localport:remotehost:remoteport")
+		f.ui.SayIncorrectUsage("-L expects [localhost:]<local-port>:<remote-host>:<remote-port>")
 		f.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
 
 	if localPort == "0" {
-		f.ui.SayIncorrectUsage("-L expects [localhost:]localport:remotehost:remoteport")
+		f.ui.SayIncorrectUsage("-L expects [localhost:]<local-port>:<remote-host>:<remote-port>")
 		f.exitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}

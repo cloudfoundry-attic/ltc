@@ -84,7 +84,7 @@ func (factory *AppRunnerCommandFactory) MakeSubmitLrpCommand() cli.Command {
 		Name:        "submit-lrp",
 		Aliases:     []string{"sl"},
 		Usage:       "Creates an app from JSON on lattice",
-		Description: "ltc submit-lrp /path/to/json",
+		Description: "ltc submit-lrp <json-path>",
 		Action:      factory.submitLrp,
 	}
 
@@ -103,7 +103,7 @@ func (factory *AppRunnerCommandFactory) MakeScaleAppCommand() cli.Command {
 		Name:        "scale",
 		Aliases:     []string{"sc"},
 		Usage:       "Scales an app on lattice",
-		Description: "ltc scale APP_NAME NUM_INSTANCES",
+		Description: "ltc scale <app-name> <number-of-instances>",
 		Action:      factory.scaleApp,
 		Flags:       scaleFlags,
 	}
@@ -119,11 +119,11 @@ func (factory *AppRunnerCommandFactory) MakeUpdateCommand() cli.Command {
 		},
 		cli.StringSliceFlag{
 			Name:  "http-route, R",
-			Usage: "Requests for HOST on port 80 will be forwarded to the associated container port. Container ports must be among those specified on create with --ports or with the EXPOSE Docker image directive. Can be passed multiple times. Usage: --http-route HOST:CONTAINER_PORT. Can be passed multiple times.",
+			Usage: "Requests for <host> on port 80 will be forwarded to the associated container port. Container ports must be among those specified on create with --ports or with the EXPOSE Docker image directive. Can be passed multiple times. Usage: --http-route <host>:<container-port>. Can be passed multiple times.",
 		},
 		cli.StringSliceFlag{
 			Name:  "tcp-route, T",
-			Usage: "Requests for the external port will be forwarded to the associated container port. Container ports must be among those specified on create with --ports or with the EXPOSE Docker image directive. Replaces all existing routes. Usage: EXTERNAL_PORT:CONTAINER_PORT. Can be passed multiple times.",
+			Usage: "Requests for the external port will be forwarded to the associated container port. Container ports must be among those specified on create with --ports or with the EXPOSE Docker image directive. Replaces all existing routes. Usage: <external-port>:<container-port>. Can be passed multiple times.",
 		},
 		cli.StringFlag{
 			Name:  "http-routes",
@@ -138,7 +138,7 @@ func (factory *AppRunnerCommandFactory) MakeUpdateCommand() cli.Command {
 		Name:        "update",
 		Aliases:     []string{"up"},
 		Usage:       "Updates attributes of an existing application",
-		Description: "ltc update APP_NAME [--http-route HOST:CONTAINER_PORT] [--tcp-route EXTERNAL_PORT:CONTAINER_PORT]\n",
+		Description: "ltc update <app-name> [--http-route <host>:<container-port> [--tcp-route <external-port>:<container-port>]\n",
 		Action:      factory.updateApp,
 		Flags:       updateFlags,
 	}
@@ -150,7 +150,7 @@ func (factory *AppRunnerCommandFactory) MakeRemoveAppCommand() cli.Command {
 	var removeAppCommand = cli.Command{
 		Name:        "remove",
 		Aliases:     []string{"rm"},
-		Description: "ltc remove APP1_NAME [APP2_NAME APP3_NAME...]",
+		Description: "ltc remove <app1-name> [<app2-name> <app3-name>...]",
 		Usage:       "Stops and removes app(s) from lattice",
 		Action:      factory.removeApp,
 	}
@@ -189,7 +189,7 @@ func (factory *AppRunnerCommandFactory) scaleApp(c *cli.Context) {
 	instancesArg := c.Args().Get(1)
 	timeoutFlag := c.Duration("timeout")
 	if appName == "" || instancesArg == "" {
-		factory.UI.SayIncorrectUsage("Please enter 'ltc scale APP_NAME NUMBER_OF_INSTANCES'")
+		factory.UI.SayIncorrectUsage("Please enter 'ltc scale <app-name> <number-of-instances>'")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -207,7 +207,7 @@ func (factory *AppRunnerCommandFactory) scaleApp(c *cli.Context) {
 func (factory *AppRunnerCommandFactory) updateApp(c *cli.Context) {
 	appName := c.Args().First()
 	if appName == "" {
-		factory.UI.SayIncorrectUsage("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag.")
+		factory.UI.SayIncorrectUsage("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag.")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
@@ -231,7 +231,7 @@ func (factory *AppRunnerCommandFactory) updateApp(c *cli.Context) {
 	noRoutes := c.Bool("no-routes")
 
 	if len(httpRouteFlag) == 0 && len(tcpRouteFlag) == 0 && !noRoutes {
-		factory.UI.SayIncorrectUsage("Please enter 'ltc update APP_NAME' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag.")
+		factory.UI.SayIncorrectUsage("Please enter 'ltc update <app-name>' followed by at least one of: '--no-routes', '--http-route' or '--tcp-route' flag.")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}

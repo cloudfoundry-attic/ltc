@@ -33,7 +33,7 @@ func (factory *ClusterTestCommandFactory) MakeClusterTestCommand() cli.Command {
 		Name:        "test",
 		Aliases:     []string{"te"},
 		Usage:       "Runs test suite against targeted lattice cluster",
-		Description: "ltc test [-v] [--timeout=TIMEOUT] [--cli-help]",
+		Description: "ltc test [-v] [--timeout=<timeout>] [--cli-help]",
 		Action:      factory.runIntegrationTests,
 		Flags:       testFlags,
 	}
