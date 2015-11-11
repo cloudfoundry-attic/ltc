@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -303,7 +304,7 @@ func (factory *AppExaminerCommandFactory) appStatus(context *cli.Context) {
 
 	factory.ui.Write(writer.Bytes())
 
-	if rateFlag == 0 {
+	if rateFlag == 0 || os.Getenv("TERM") == "" {
 		return
 	}
 
@@ -523,7 +524,7 @@ func (factory *AppExaminerCommandFactory) visualizeCells(context *cli.Context) {
 	factory.ui.SayLine(colors.Bold("Distribution"))
 	linesWritten := factory.printDistribution()
 
-	if rate == 0 {
+	if rate == 0 || os.Getenv("TERM") == "" {
 		return
 	}
 

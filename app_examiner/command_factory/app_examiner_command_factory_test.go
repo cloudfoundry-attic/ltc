@@ -461,64 +461,108 @@ var _ = Describe("CommandFactory", func() {
 				Eventually(closeChan).Should(BeClosed())
 			})
 
-			It("dynamically displays the visualization", func() {
-				setNumberOfRunningInstances := func(count int) {
-					fakeAppExaminer.ListCellsReturns([]app_examiner.CellInfo{app_examiner.CellInfo{CellID: "cell-0", RunningInstances: count}, app_examiner.CellInfo{CellID: "cell-1", RunningInstances: count, Missing: true}}, nil)
-				}
-				setNumberOfRunningInstances(0)
+			Context("when term is set", func() {
+				var previousTerm string
 
-				closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate", "2s"})
+				BeforeEach(func() {
+					previousTerm = os.Getenv("TERM")
+					os.Setenv("TERM", "xterm")
 
-				Eventually(outputBuffer).Should(test_helpers.SayLine("cell-0: " + colors.Red("empty") + cursor.ClearToEndOfLine()))
-				Eventually(outputBuffer).Should(test_helpers.SayLine("cell-1" + colors.Red("[MISSING]") + ": " + cursor.ClearToEndOfLine()))
+				})
 
-				setNumberOfRunningInstances(2)
+				AfterEach(func() {
+					os.Setenv("TERM", previousTerm)
+				})
 
-				fakeClock.IncrementBySeconds(1)
+				It("dynamically displays the visualization", func() {
+					setNumberOfRunningInstances := func(count int) {
+						fakeAppExaminer.ListCellsReturns([]app_examiner.CellInfo{app_examiner.CellInfo{CellID: "cell-0", RunningInstances: count}, app_examiner.CellInfo{CellID: "cell-1", RunningInstances: count, Missing: true}}, nil)
+					}
+					setNumberOfRunningInstances(0)
 
-				Consistently(outputBuffer).ShouldNot(test_helpers.Say("cell: \n")) // TODO: how would this happen
+					closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate", "2s"})
 
-				fakeClock.IncrementBySeconds(1)
+					Eventually(outputBuffer).Should(test_helpers.SayLine("cell-0: " + colors.Red("empty") + cursor.ClearToEndOfLine()))
+					Eventually(outputBuffer).Should(test_helpers.SayLine("cell-1" + colors.Red("[MISSING]") + ": " + cursor.ClearToEndOfLine()))
 
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(2)))
-				Eventually(outputBuffer).Should(test_helpers.SayLine("cell-0: " + colors.Green("••") + cursor.ClearToEndOfLine()))
-				Eventually(outputBuffer).Should(test_helpers.SayLine("cell-1" + colors.Red("[MISSING]") + ": " + colors.Green("••") + cursor.ClearToEndOfLine()))
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.ClearToEndOfDisplay()))
+					setNumberOfRunningInstances(2)
 
-				Consistently(closeChan).ShouldNot(BeClosed())
+					fakeClock.IncrementBySeconds(1)
+
+					Consistently(outputBuffer).ShouldNot(test_helpers.Say("cell: \n")) // TODO: how would this happen
+
+					fakeClock.IncrementBySeconds(1)
+
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(2)))
+					Eventually(outputBuffer).Should(test_helpers.SayLine("cell-0: " + colors.Green("••") + cursor.ClearToEndOfLine()))
+					Eventually(outputBuffer).Should(test_helpers.SayLine("cell-1" + colors.Red("[MISSING]") + ": " + colors.Green("••") + cursor.ClearToEndOfLine()))
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.ClearToEndOfDisplay()))
+
+					Consistently(closeChan).ShouldNot(BeClosed())
+				})
+
+				It("dynamically displays any errors", func() {
+					fakeAppExaminer.ListCellsReturns(nil, errors.New("Spilled the Paint"))
+
+					closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate", "1s"})
+
+					Eventually(outputBuffer).Should(test_helpers.SayLine("Error visualizing: Spilled the Paint" + cursor.ClearToEndOfLine()))
+
+					fakeClock.IncrementBySeconds(1)
+
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(1)))
+					Eventually(outputBuffer).Should(test_helpers.SayLine("Error visualizing: Spilled the Paint" + cursor.ClearToEndOfLine()))
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.ClearToEndOfDisplay()))
+
+					Consistently(closeChan).ShouldNot(BeClosed())
+				})
+
+				It("ensures the user's cursor is visible even if they interrupt ltc", func() {
+					closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate=1s"})
+
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
+					fakeExitHandler.Exit(exit_codes.Signal)
+					Eventually(closeChan).Should(BeClosed())
+
+					Expect(outputBuffer).To(test_helpers.Say(cursor.Show()))
+					Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.Signal}))
+				})
 			})
 
-			It("dynamically displays any errors", func() {
-				fakeAppExaminer.ListCellsReturns(nil, errors.New("Spilled the Paint"))
+			Context("when term is unset", func() {
+				var previousTerm string
 
-				closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate", "1s"})
+				BeforeEach(func() {
+					previousTerm = os.Getenv("TERM")
+					os.Unsetenv("TERM")
 
-				Eventually(outputBuffer).Should(test_helpers.SayLine("Error visualizing: Spilled the Paint" + cursor.ClearToEndOfLine()))
+				})
 
-				fakeClock.IncrementBySeconds(1)
+				AfterEach(func() {
+					os.Setenv("TERM", previousTerm)
+				})
 
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(1)))
-				Eventually(outputBuffer).Should(test_helpers.SayLine("Error visualizing: Spilled the Paint" + cursor.ClearToEndOfLine()))
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.ClearToEndOfDisplay()))
+				It("displays the visualization once", func() {
+					fakeAppExaminer.ListCellsReturns([]app_examiner.CellInfo{
+						app_examiner.CellInfo{
+							CellID:           "cell-0",
+							RunningInstances: 2,
+						},
+						app_examiner.CellInfo{
+							CellID:           "cell-1",
+							RunningInstances: 2,
+							Missing:          true,
+						},
+					}, nil)
 
-				Consistently(closeChan).ShouldNot(BeClosed())
-			})
+					closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate", "2s"})
 
-			It("ensures the user's cursor is visible even if they interrupt ltc", func() {
-				previousTerm := os.Getenv("TERM")
-				Expect(os.Setenv("TERM", "xterm")).To(Succeed())
+					Eventually(outputBuffer).Should(test_helpers.SayLine("cell-0: ••"))
+					Eventually(outputBuffer).Should(test_helpers.SayLine("cell-1[MISSING]: ••"))
 
-				defer os.Setenv("TERM", previousTerm)
-
-				closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate=1s"})
-
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
-				fakeExitHandler.Exit(exit_codes.Signal)
-				Eventually(closeChan).Should(BeClosed())
-
-				Expect(outputBuffer).To(test_helpers.Say(cursor.Show()))
-				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.Signal}))
+					Expect(closeChan).To(BeClosed())
+				})
 			})
 		})
 
@@ -1026,150 +1070,23 @@ var _ = Describe("CommandFactory", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("refreshes for the designated time", func() {
-				fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
-
-				closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s"})
-
-				Consistently(closeChan).ShouldNot(BeClosed())
-				Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
-				Expect(outputBuffer).To(test_helpers.SayNewLine())
-
-				roundedTimeSince := roundTime(fakeClock.Now(), time.Unix(0, epochTime*1e9))
-				Expect(outputBuffer).To(test_helpers.Say(roundedTimeSince))
-				Expect(outputBuffer).To(test_helpers.SayNewLine())
-
-				fakeClock.IncrementBySeconds(1)
-
-				Consistently(outputBuffer).ShouldNot(test_helpers.Say("wompy-app"))
-
-				refreshTime := int64(405234567)
-				refreshAppInfo := app_examiner.AppInfo{
-					ProcessGuid:            "wompy-app",
-					DesiredInstances:       1,
-					ActualRunningInstances: 1,
-					ActualInstances: []app_examiner.InstanceInfo{
-						{
-							InstanceGuid: "a0s9f-u9a8sf-aasdioasdjoi",
-							Index:        1,
-							State:        "RUNNING",
-							Since:        refreshTime * 1e9,
-						},
-					},
-					EnvironmentVariables: []app_examiner.EnvironmentVariable{
-						{
-							Name:  "VCAP_APPLICATION",
-							Value: `{"application_name":"latty","application_uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"name":"latty","uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"limits":{"mem":128}}`,
-						},
-					},
-				}
-
-				fakeAppExaminer.AppStatusReturns(refreshAppInfo, nil)
-
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
-
-				fakeClock.IncrementBySeconds(1)
-
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(27)))
-				Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
-				Eventually(outputBuffer).Should(test_helpers.SayNewLine())
-				roundedTimeSince = roundTime(fakeClock.Now(), time.Unix(0, refreshTime*1e9))
-				Eventually(outputBuffer).Should(test_helpers.Say(roundedTimeSince))
-
-				Consistently(closeChan).ShouldNot(BeClosed())
-			})
-
-			It("calculates the correct height based on terminal width", func() {
-				fakeTerm.GetWindowWidthReturns(200, nil)
-
-				refreshTime := int64(405234567)
-				wrappedAppInfo := app_examiner.AppInfo{
-					DesiredInstances:       1,
-					ActualRunningInstances: 1,
-					ActualInstances: []app_examiner.InstanceInfo{
-						{
-							InstanceGuid: "a0s9f-u9a8sf-aasdioasdjoi",
-							Index:        1,
-							State:        "RUNNING",
-							Since:        refreshTime * 1e9,
-						},
-					},
-					EnvironmentVariables: []app_examiner.EnvironmentVariable{
-						{
-							Name:  "VCAP_APPLICATION",
-							Value: `{"application_name":"latty","application_uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"name":"latty","uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"limits":{"mem":128}}`,
-						},
-					},
-				}
-
-				fakeAppExaminer.AppStatusReturns(wrappedAppInfo, nil)
-
-				closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s"})
-
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
-
-				fakeClock.IncrementBySeconds(3)
-
-				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(20)))
-
-				Consistently(closeChan).ShouldNot(BeClosed())
-			})
-
-			It("dynamically displays any errors", func() {
-				fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
-
-				closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "1s"})
-
-				Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
-				Expect(outputBuffer).NotTo(test_helpers.Say("Error getting status"))
-
-				fakeAppExaminer.AppStatusReturns(app_examiner.AppInfo{}, errors.New("error fetching status"))
-				fakeClock.IncrementBySeconds(1)
-				Eventually(closeChan).Should(BeClosed())
-
-				Expect(outputBuffer).NotTo(test_helpers.Say(TerminalEsc + "\\d+A"))
-				Expect(outputBuffer).To(test_helpers.Say("Error getting status: error fetching status"))
-				Expect(outputBuffer).To(test_helpers.Say(cursor.Show()))
-			})
-
-			Context("when the user interrupts ltc status with ctrl-c", func() {
+			Context("when term is set", func() {
 				var previousTerm string
 
 				BeforeEach(func() {
 					previousTerm = os.Getenv("TERM")
-					Expect(os.Setenv("TERM", "xterm")).To(Succeed())
+					os.Setenv("TERM", "xterm")
+
 				})
 
 				AfterEach(func() {
-					Expect(os.Setenv("TERM", previousTerm)).To(Succeed())
+					os.Setenv("TERM", previousTerm)
 				})
 
-				It("ensures the user's cursor is still visible", func() {
-					closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate=1s"})
-
-					Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
-					fakeExitHandler.Exit(exit_codes.Signal)
-					Eventually(closeChan).Should(BeClosed())
-
-					Expect(outputBuffer).To(test_helpers.Say(cursor.Show()))
-					Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.Signal}))
-				})
-			})
-
-			Context("when the --detailed flag is also passed", func() {
-				It("prints a warning message", func() {
+				It("refreshes for the designated time", func() {
 					fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
 
-					closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s", "--detailed"})
-
-					Consistently(closeChan).ShouldNot(BeClosed())
-					Eventually(outputBuffer).Should(test_helpers.SayLine("WARNING: flags '--detailed' and '--rate' are incompatible."))
-				})
-
-				It("continues as normal with summary output", func() {
-					fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
-
-					closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s", "--detailed"})
+					closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s"})
 
 					Consistently(closeChan).ShouldNot(BeClosed())
 					Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
@@ -1217,6 +1134,176 @@ var _ = Describe("CommandFactory", func() {
 					Eventually(outputBuffer).Should(test_helpers.Say(roundedTimeSince))
 
 					Consistently(closeChan).ShouldNot(BeClosed())
+				})
+
+				It("calculates the correct height based on terminal width", func() {
+					fakeTerm.GetWindowWidthReturns(200, nil)
+
+					refreshTime := int64(405234567)
+					wrappedAppInfo := app_examiner.AppInfo{
+						DesiredInstances:       1,
+						ActualRunningInstances: 1,
+						ActualInstances: []app_examiner.InstanceInfo{
+							{
+								InstanceGuid: "a0s9f-u9a8sf-aasdioasdjoi",
+								Index:        1,
+								State:        "RUNNING",
+								Since:        refreshTime * 1e9,
+							},
+						},
+						EnvironmentVariables: []app_examiner.EnvironmentVariable{
+							{
+								Name:  "VCAP_APPLICATION",
+								Value: `{"application_name":"latty","application_uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"name":"latty","uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"limits":{"mem":128}}`,
+							},
+						},
+					}
+
+					fakeAppExaminer.AppStatusReturns(wrappedAppInfo, nil)
+
+					closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s"})
+
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
+
+					fakeClock.IncrementBySeconds(3)
+
+					Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(20)))
+
+					Consistently(closeChan).ShouldNot(BeClosed())
+				})
+
+				It("dynamically displays any errors", func() {
+					fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
+
+					closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "1s"})
+
+					Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
+					Expect(outputBuffer).NotTo(test_helpers.Say("Error getting status"))
+
+					fakeAppExaminer.AppStatusReturns(app_examiner.AppInfo{}, errors.New("error fetching status"))
+					fakeClock.IncrementBySeconds(1)
+					Eventually(closeChan).Should(BeClosed())
+
+					Expect(outputBuffer).NotTo(test_helpers.Say(TerminalEsc + "\\d+A"))
+					Expect(outputBuffer).To(test_helpers.Say("Error getting status: error fetching status"))
+					Expect(outputBuffer).To(test_helpers.Say(cursor.Show()))
+				})
+
+				Context("when the user interrupts ltc status with ctrl-c", func() {
+					var previousTerm string
+
+					BeforeEach(func() {
+						previousTerm = os.Getenv("TERM")
+						Expect(os.Setenv("TERM", "xterm")).To(Succeed())
+					})
+
+					AfterEach(func() {
+						Expect(os.Setenv("TERM", previousTerm)).To(Succeed())
+					})
+
+					It("ensures the user's cursor is still visible", func() {
+						closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate=1s"})
+
+						Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
+						fakeExitHandler.Exit(exit_codes.Signal)
+						Eventually(closeChan).Should(BeClosed())
+
+						Expect(outputBuffer).To(test_helpers.Say(cursor.Show()))
+						Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.Signal}))
+					})
+				})
+
+				Context("when the --detailed flag is also passed", func() {
+					It("prints a warning message", func() {
+						fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
+
+						closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s", "--detailed"})
+
+						Consistently(closeChan).ShouldNot(BeClosed())
+						Eventually(outputBuffer).Should(test_helpers.SayLine("WARNING: flags '--detailed' and '--rate' are incompatible."))
+					})
+
+					It("continues as normal with summary output", func() {
+						fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
+
+						closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s", "--detailed"})
+
+						Consistently(closeChan).ShouldNot(BeClosed())
+						Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
+						Expect(outputBuffer).To(test_helpers.SayNewLine())
+
+						roundedTimeSince := roundTime(fakeClock.Now(), time.Unix(0, epochTime*1e9))
+						Expect(outputBuffer).To(test_helpers.Say(roundedTimeSince))
+						Expect(outputBuffer).To(test_helpers.SayNewLine())
+
+						fakeClock.IncrementBySeconds(1)
+
+						Consistently(outputBuffer).ShouldNot(test_helpers.Say("wompy-app"))
+
+						refreshTime := int64(405234567)
+						refreshAppInfo := app_examiner.AppInfo{
+							ProcessGuid:            "wompy-app",
+							DesiredInstances:       1,
+							ActualRunningInstances: 1,
+							ActualInstances: []app_examiner.InstanceInfo{
+								{
+									InstanceGuid: "a0s9f-u9a8sf-aasdioasdjoi",
+									Index:        1,
+									State:        "RUNNING",
+									Since:        refreshTime * 1e9,
+								},
+							},
+							EnvironmentVariables: []app_examiner.EnvironmentVariable{
+								{
+									Name:  "VCAP_APPLICATION",
+									Value: `{"application_name":"latty","application_uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"name":"latty","uris":["latty.192.168.11.11.xip.io","latty-8080.192.168.11.11.xip.io"],"limits":{"mem":128}}`,
+								},
+							},
+						}
+
+						fakeAppExaminer.AppStatusReturns(refreshAppInfo, nil)
+
+						Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
+
+						fakeClock.IncrementBySeconds(1)
+
+						Eventually(outputBuffer).Should(test_helpers.Say(cursor.Up(27)))
+						Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
+						Eventually(outputBuffer).Should(test_helpers.SayNewLine())
+						roundedTimeSince = roundTime(fakeClock.Now(), time.Unix(0, refreshTime*1e9))
+						Eventually(outputBuffer).Should(test_helpers.Say(roundedTimeSince))
+
+						Consistently(closeChan).ShouldNot(BeClosed())
+					})
+				})
+
+				Context("when term is unset", func() {
+					var previousTerm string
+
+					BeforeEach(func() {
+						previousTerm = os.Getenv("TERM")
+						os.Unsetenv("TERM")
+
+					})
+
+					AfterEach(func() {
+						os.Setenv("TERM", previousTerm)
+					})
+
+					It("prints once", func() {
+						fakeAppExaminer.AppStatusReturns(sampleAppInfo, nil)
+
+						closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate", "2s"})
+
+						Eventually(outputBuffer).Should(test_helpers.Say("wompy-app"))
+						Expect(outputBuffer).To(test_helpers.SayNewLine())
+
+						roundedTimeSince := roundTime(fakeClock.Now(), time.Unix(0, epochTime*1e9))
+						Expect(outputBuffer).To(test_helpers.Say(roundedTimeSince))
+						Expect(outputBuffer).To(test_helpers.SayNewLine())
+
+						Expect(closeChan).To(BeClosed())
+					})
 				})
 			})
 		})
