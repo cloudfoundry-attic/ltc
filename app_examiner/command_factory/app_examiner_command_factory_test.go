@@ -506,6 +506,11 @@ var _ = Describe("CommandFactory", func() {
 			})
 
 			It("ensures the user's cursor is visible even if they interrupt ltc", func() {
+				previousTerm := os.Getenv("TERM")
+				Expect(os.Setenv("TERM", "xterm")).To(Succeed())
+
+				defer os.Setenv("TERM", previousTerm)
+
 				closeChan = test_helpers.AsyncExecuteCommandWithArgs(visualizeCommand, []string{"--rate=1s"})
 
 				Eventually(outputBuffer).Should(test_helpers.Say(cursor.Hide()))
@@ -1128,6 +1133,17 @@ var _ = Describe("CommandFactory", func() {
 			})
 
 			Context("when the user interrupts ltc status with ctrl-c", func() {
+				var previousTerm string
+
+				BeforeEach(func() {
+					previousTerm = os.Getenv("TERM")
+					Expect(os.Setenv("TERM", "xterm")).To(Succeed())
+				})
+
+				AfterEach(func() {
+					Expect(os.Setenv("TERM", previousTerm)).To(Succeed())
+				})
+
 				It("ensures the user's cursor is still visible", func() {
 					closeChan = test_helpers.AsyncExecuteCommandWithArgs(statusCommand, []string{"wompy-app", "--rate=1s"})
 
