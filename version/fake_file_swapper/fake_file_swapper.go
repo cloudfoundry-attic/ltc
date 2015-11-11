@@ -12,7 +12,7 @@ type FakeFileSwapper struct {
 	GetTempFileStub        func() (*os.File, error)
 	getTempFileMutex       sync.RWMutex
 	getTempFileArgsForCall []struct{}
-	getTempFileReturns struct {
+	getTempFileReturns     struct {
 		result1 *os.File
 		result2 error
 	}
