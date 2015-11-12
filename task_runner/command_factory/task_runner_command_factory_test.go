@@ -146,7 +146,7 @@ var _ = Describe("TaskRunner CommandFactory", func() {
 		It("fails with usage", func() {
 			test_helpers.ExecuteCommandWithArgs(deleteTaskCommand, []string{})
 
-			Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid TASK_GUID"))
+			Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid <task-guid>"))
 			Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 		})
 	})
@@ -188,7 +188,7 @@ var _ = Describe("TaskRunner CommandFactory", func() {
 		It("fails with usage", func() {
 			test_helpers.ExecuteCommandWithArgs(cancelTaskCommand, []string{})
 
-			Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid TASK_GUID"))
+			Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid <task-guid>"))
 			Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 		})
 	})

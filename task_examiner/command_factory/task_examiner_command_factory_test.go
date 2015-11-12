@@ -125,7 +125,7 @@ var _ = Describe("TaskExaminer CommandFactory", func() {
 		It("bails out when no task name passed", func() {
 			test_helpers.ExecuteCommandWithArgs(taskCommand, []string{})
 
-			Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid TASK_GUID"))
+			Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid <task-guid>"))
 			Expect(fakeTaskExaminer.TaskStatusCallCount()).To(Equal(0))
 			Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 		})

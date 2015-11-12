@@ -468,7 +468,7 @@ var _ = Describe("CommandFactory", func() {
 				Expect(fakeDropletRunner.UploadBitsCallCount()).To(Equal(0))
 				Expect(fakeDropletRunner.BuildDropletCallCount()).To(Equal(0))
 
-				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: DROPLET_NAME and BUILDPACK_URL are required"))
+				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: <droplet-name> and <buildpack-uri> are required"))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})
 
@@ -798,7 +798,7 @@ var _ = Describe("CommandFactory", func() {
 				args := []string{"appy"}
 				test_helpers.ExecuteCommandWithArgs(launchDropletCommand, args)
 
-				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: APP_NAME and DROPLET_NAME are required"))
+				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: <app-name> and <droplet-name> are required"))
 				Expect(fakeDropletRunner.LaunchDropletCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})
@@ -961,7 +961,7 @@ var _ = Describe("CommandFactory", func() {
 		Context("when the required arguments are missing", func() {
 			It("prints an error", func() {
 				test_helpers.ExecuteCommandWithArgs(removeDropletCommand, []string{""})
-				Expect(outputBuffer).To(test_helpers.SayLine("DROPLET_NAME is required"))
+				Expect(outputBuffer).To(test_helpers.SayLine("<droplet-name> is required"))
 				Expect(fakeDropletRunner.RemoveDropletCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})
@@ -1040,7 +1040,7 @@ var _ = Describe("CommandFactory", func() {
 			It("prints incorrect usage", func() {
 				test_helpers.ExecuteCommandWithArgs(exportDropletCommand, []string{""})
 
-				Expect(outputBuffer).To(test_helpers.SayLine("DROPLET_NAME is required"))
+				Expect(outputBuffer).To(test_helpers.SayLine("<droplet-name> is required"))
 				Expect(fakeDropletRunner.ExportDropletCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})
@@ -1101,7 +1101,7 @@ var _ = Describe("CommandFactory", func() {
 			It("prints incorrect usage", func() {
 				test_helpers.ExecuteCommandWithArgs(importDropletCommand, []string{"droplet-name", "some-path"})
 
-				Expect(outputBuffer).To(test_helpers.SayLine("DROPLET_NAME,DROPLET_PATH and METADATA_PATH are required"))
+				Expect(outputBuffer).To(test_helpers.SayLine("<droplet-name>, <droplet-path> and <metadata-path> are required"))
 				Expect(fakeDropletRunner.ImportDropletCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})

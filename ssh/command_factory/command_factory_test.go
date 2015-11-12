@@ -126,13 +126,13 @@ var _ = Describe("SSH CommandFactory", func() {
 
 				It("should reject malformed local forward specs", func() {
 					test_helpers.ExecuteCommandWithArgs(sshCommand, []string{"app-name", "-N", "-L", "9999:localhost:1234:remotehost:5678"})
-					Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]localport:remotehost:remoteport"))
+					Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]<local-port>:<remote-host>:<remote-port>"))
 
 					test_helpers.ExecuteCommandWithArgs(sshCommand, []string{"app-name", "-N", "-L", "remotehost:5678"})
-					Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]localport:remotehost:remoteport"))
+					Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]<local-port>:<remote-host>:<remote-port>"))
 
 					test_helpers.ExecuteCommandWithArgs(sshCommand, []string{"app-name", "-N", "-L", "5678"})
-					Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]localport:remotehost:remoteport"))
+					Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]<local-port>:<remote-host>:<remote-port>"))
 
 					Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax, exit_codes.InvalidSyntax, exit_codes.InvalidSyntax}))
 
@@ -142,7 +142,7 @@ var _ = Describe("SSH CommandFactory", func() {
 				Context("when the local host port is set to zero", func() {
 					It("should print incorrect usage", func() {
 						test_helpers.ExecuteCommandWithArgs(sshCommand, []string{"app-name", "-N", "-L", "0:localhost:5678"})
-						Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]localport:remotehost:remoteport"))
+						Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: -L expects [localhost:]<local-port>:<remote-host>:<remote-port>"))
 
 						Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 
@@ -287,7 +287,7 @@ var _ = Describe("SSH CommandFactory", func() {
 			It("prints an error", func() {
 				test_helpers.ExecuteCommandWithArgs(sshCommand, []string{})
 
-				Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid APP_NAME"))
+				Expect(outputBuffer).To(test_helpers.SayLine("Please input a valid <app-name>"))
 
 				Expect(fakeSSH.ConnectCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))

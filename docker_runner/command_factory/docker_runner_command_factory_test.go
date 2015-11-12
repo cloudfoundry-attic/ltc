@@ -1085,7 +1085,7 @@ var _ = Describe("CommandFactory", func() {
 
 				test_helpers.ExecuteCommandWithArgs(createCommand, args)
 
-				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: APP_NAME and DOCKER_IMAGE are required"))
+				Expect(outputBuffer).To(test_helpers.SayLine("Incorrect Usage: <app-name> and <docker-image> are required"))
 				Expect(fakeAppRunner.CreateAppCallCount()).To(Equal(0))
 			})
 
