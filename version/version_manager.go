@@ -17,13 +17,13 @@ type FileSwapper interface {
 }
 
 type ServerVersions struct {
-	CfRelease           string
-	CfRoutingRelease    string
+	CFRelease           string
+	CFRoutingRelease    string
 	DiegoRelease        string
 	GardenLinuxRelease  string
 	LatticeRelease      string
 	LatticeReleaseImage string
-	Ltc                 string
+	LTC                 string
 	Receptor            string
 }
 
@@ -55,13 +55,13 @@ func (v *versionManager) ServerVersions() (ServerVersions, error) {
 		return ServerVersions{}, err
 	}
 	return ServerVersions{
-		CfRelease:           versionResponse.CfRelease,
-		CfRoutingRelease:    versionResponse.CfRoutingRelease,
+		CFRelease:           versionResponse.CFRelease,
+		CFRoutingRelease:    versionResponse.CFRoutingRelease,
 		DiegoRelease:        versionResponse.DiegoRelease,
 		GardenLinuxRelease:  versionResponse.GardenLinuxRelease,
 		LatticeRelease:      versionResponse.LatticeRelease,
 		LatticeReleaseImage: versionResponse.LatticeReleaseImage,
-		Ltc:                 versionResponse.Ltc,
+		LTC:                 versionResponse.LTC,
 		Receptor:            versionResponse.Receptor,
 	}, nil
 }

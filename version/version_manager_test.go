@@ -58,24 +58,24 @@ var _ = Describe("VersionManager", func() {
 	Describe("ServerVersions", func() {
 		It("should fetch versions from receptor", func() {
 			fakeReceptorClient.GetVersionReturns(receptor.VersionResponse{
-				CfRelease:           "v219",
-				CfRoutingRelease:    "v220",
+				CFRelease:           "v219",
+				CFRoutingRelease:    "v220",
 				DiegoRelease:        "v221",
 				GardenLinuxRelease:  "v222",
 				LatticeRelease:      "v223",
 				LatticeReleaseImage: "v224",
-				Ltc:                 "v225",
+				LTC:                 "v225",
 				Receptor:            "v226",
 			}, nil)
 			serverVersions, _ := versionManager.ServerVersions()
 			Expect(serverVersions).To(Equal(version.ServerVersions{
-				CfRelease:           "v219",
-				CfRoutingRelease:    "v220",
+				CFRelease:           "v219",
+				CFRoutingRelease:    "v220",
 				DiegoRelease:        "v221",
 				GardenLinuxRelease:  "v222",
 				LatticeRelease:      "v223",
 				LatticeReleaseImage: "v224",
-				Ltc:                 "v225",
+				LTC:                 "v225",
 				Receptor:            "v226",
 			}))
 		})
@@ -215,13 +215,13 @@ var _ = Describe("VersionManager", func() {
 	Describe("#LtcMatchesServer", func() {
 		BeforeEach(func() {
 			fakeReceptorClient.GetVersionReturns(receptor.VersionResponse{
-				CfRelease:           "v219",
-				CfRoutingRelease:    "v220",
+				CFRelease:           "v219",
+				CFRoutingRelease:    "v220",
 				DiegoRelease:        "v221",
 				GardenLinuxRelease:  "v222",
 				LatticeRelease:      "v223",
 				LatticeReleaseImage: "v224",
-				Ltc:                 "v225",
+				LTC:                 "v225",
 				Receptor:            "v226",
 			}, nil)
 		})

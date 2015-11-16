@@ -96,8 +96,8 @@ func (f *VersionCommandFactory) version(context *cli.Context) {
 
 	f.ui.SayLine("Server: " + serverVersions.LatticeRelease)
 	f.ui.SayLine("\tImage: " + serverVersions.LatticeReleaseImage)
-	f.ui.SayLine("\tCF: " + serverVersions.CfRelease)
+	f.ui.SayLine("\tCF: " + serverVersions.CFRelease)
 	f.ui.SayLine("\tDiego: " + serverVersions.DiegoRelease)
 	f.ui.SayLine("\tGarden-Linux: " + serverVersions.GardenLinuxRelease)
-	f.ui.SayLine("\tRouting: " + serverVersions.CfRoutingRelease)
+	f.ui.SayLine("\tRouting: " + serverVersions.CFRoutingRelease)
 }

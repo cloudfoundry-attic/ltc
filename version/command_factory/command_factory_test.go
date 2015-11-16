@@ -52,13 +52,13 @@ var _ = Describe("Version CommandFactory", func() {
 		BeforeEach(func() {
 			versionCommand = commandFactory.MakeVersionCommand()
 			fakeVersionManager.ServerVersionsReturns(version.ServerVersions{
-				CfRelease:           "v219",
-				CfRoutingRelease:    "v220",
+				CFRelease:           "v219",
+				CFRoutingRelease:    "v220",
 				DiegoRelease:        "v221",
 				GardenLinuxRelease:  "v222",
 				LatticeRelease:      "some-server-lattice-sha",
 				LatticeReleaseImage: "some-server-lattice-image-sha",
-				Ltc:                 "v225",
+				LTC:                 "v225",
 				Receptor:            "v226",
 			}, nil)
 		})
