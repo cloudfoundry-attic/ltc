@@ -489,6 +489,10 @@ var _ = Describe("CommandFactory", func() {
 				fakeVersionManager.LtcMatchesServerReturns(false, nil)
 
 				test_helpers.ExecuteCommandWithArgs(targetCommand, []string{"target.com"})
+
+				Expect(fakeVersionManager.LtcMatchesServerCallCount()).To(Equal(1))
+				Expect(fakeVersionManager.LtcMatchesServerArgsForCall(0)).To(Equal("http://receptor.target.com"))
+
 				Expect(outputBuffer).To(test_helpers.SayLine("WARNING: local ltc version (some-version) does not match target expected version."))
 				Expect(outputBuffer).To(test_helpers.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version."))
 			})
@@ -497,6 +501,10 @@ var _ = Describe("CommandFactory", func() {
 				fakeVersionManager.LtcMatchesServerReturns(false, errors.New("whoops"))
 
 				test_helpers.ExecuteCommandWithArgs(targetCommand, []string{"target.com"})
+
+				Expect(fakeVersionManager.LtcMatchesServerCallCount()).To(Equal(1))
+				Expect(fakeVersionManager.LtcMatchesServerArgsForCall(0)).To(Equal("http://receptor.target.com"))
+
 				Expect(outputBuffer).To(test_helpers.SayLine("WARNING: local ltc version (some-version) does not match target expected version."))
 				Expect(outputBuffer).NotTo(test_helpers.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version."))
 			})
@@ -505,6 +513,10 @@ var _ = Describe("CommandFactory", func() {
 				fakeVersionManager.LtcMatchesServerReturns(true, nil)
 
 				test_helpers.ExecuteCommandWithArgs(targetCommand, []string{"target.com"})
+
+				Expect(fakeVersionManager.LtcMatchesServerCallCount()).To(Equal(1))
+				Expect(fakeVersionManager.LtcMatchesServerArgsForCall(0)).To(Equal("http://receptor.target.com"))
+
 				Expect(outputBuffer).NotTo(test_helpers.SayLine("WARNING: local ltc version (some-version) does not match target expected version."))
 				Expect(outputBuffer).NotTo(test_helpers.SayLine("Run `ltc sync` to replace your local ltc command-line tool with your target cluster's expected version."))
 			})

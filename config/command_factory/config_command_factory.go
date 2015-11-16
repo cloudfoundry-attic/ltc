@@ -143,7 +143,7 @@ func (factory *ConfigCommandFactory) verifyBlobStore() bool {
 }
 
 func (f *ConfigCommandFactory) checkVersions() {
-	ltcMatchesServer, err := f.versionManager.LtcMatchesServer()
+	ltcMatchesServer, err := f.versionManager.LtcMatchesServer(f.config.Receptor())
 	if !ltcMatchesServer {
 		f.ui.SayLine(fmt.Sprintf("WARNING: local ltc version (%s) does not match target expected version.", f.versionManager.LatticeVersion()))
 

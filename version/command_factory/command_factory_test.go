@@ -66,6 +66,9 @@ var _ = Describe("Version CommandFactory", func() {
 		It("Prints the CLI and API versions", func() {
 			test_helpers.ExecuteCommandWithArgs(versionCommand, []string{})
 
+			Expect(fakeVersionManager.ServerVersionsCallCount()).To(Equal(1))
+			Expect(fakeVersionManager.ServerVersionsArgsForCall(0)).To(Equal("http://receptor.lattice.xip.io"))
+
 			Expect(outputBuffer).To(test_helpers.SayLine("Client: some-client-lattice-sha"))
 			Expect(outputBuffer).To(test_helpers.SayLine("Server: some-server-lattice-sha"))
 			Expect(outputBuffer).To(test_helpers.SayLine("\tImage: some-server-lattice-image-sha"))

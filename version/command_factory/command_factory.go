@@ -22,7 +22,7 @@ type VersionCommandFactory struct {
 
 type VersionManager interface {
 	SyncLTC(ltcPath string, arch string, config *config_package.Config) error
-	ServerVersions() (version.ServerVersions, error)
+	ServerVersions(receptorTarget string) (version.ServerVersions, error)
 	LatticeVersion() string
 }
 
@@ -87,7 +87,7 @@ func (f *VersionCommandFactory) syncLTC(context *cli.Context) {
 func (f *VersionCommandFactory) version(context *cli.Context) {
 	f.ui.SayLine("Client: " + f.versionManager.LatticeVersion())
 
-	serverVersions, err := f.versionManager.ServerVersions()
+	serverVersions, err := f.versionManager.ServerVersions(f.config.Receptor())
 	if err != nil {
 		f.ui.SayLine("Error: " + err.Error())
 		f.exitHandler.Exit(exit_codes.CommandFailed)

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
-	"github.com/cloudfoundry-incubator/receptor"
+	"github.com/cloudfoundry-incubator/ltc/receptor_client"
 )
 
 //go:generate counterfeiter -o fake_file_swapper/fake_file_swapper.go . FileSwapper
@@ -30,27 +30,27 @@ type ServerVersions struct {
 //go:generate counterfeiter -o fake_version_manager/fake_version_manager.go . VersionManager
 type VersionManager interface {
 	SyncLTC(ltcPath string, arch string, config *config_package.Config) error
-	ServerVersions() (ServerVersions, error)
+	ServerVersions(receptorTarget string) (ServerVersions, error)
 	LatticeVersion() string
-	LtcMatchesServer() (bool, error)
+	LtcMatchesServer(receptorTarget string) (bool, error)
 }
 
 type versionManager struct {
-	receptorClient receptor.Client
-	fileSwapper    FileSwapper
-	latticeVersion string
+	receptorClientCreator receptor_client.Creator
+	fileSwapper           FileSwapper
+	latticeVersion        string
 }
 
-func NewVersionManager(receptorClient receptor.Client, fileSwapper FileSwapper, latticeVersion string) *versionManager {
+func NewVersionManager(receptorClientCreator receptor_client.Creator, fileSwapper FileSwapper, latticeVersion string) *versionManager {
 	return &versionManager{
-		receptorClient,
+		receptorClientCreator,
 		fileSwapper,
 		latticeVersion,
 	}
 }
 
-func (v *versionManager) ServerVersions() (ServerVersions, error) {
-	versionResponse, err := v.receptorClient.GetVersion()
+func (v *versionManager) ServerVersions(receptorTarget string) (ServerVersions, error) {
+	versionResponse, err := v.receptorClientCreator.CreateReceptorClient(receptorTarget).GetVersion()
 	if err != nil {
 		return ServerVersions{}, err
 	}
@@ -98,8 +98,8 @@ func (s *versionManager) LatticeVersion() string {
 	return s.latticeVersion
 }
 
-func (s *versionManager) LtcMatchesServer() (bool, error) {
-	serverVersions, err := s.ServerVersions()
+func (s *versionManager) LtcMatchesServer(receptorTarget string) (bool, error) {
+	serverVersions, err := s.ServerVersions(receptorTarget)
 	if err != nil {
 		return false, err
 	}

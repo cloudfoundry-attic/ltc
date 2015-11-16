@@ -19,10 +19,12 @@ type FakeVersionManager struct {
 	syncLTCReturns struct {
 		result1 error
 	}
-	ServerVersionsStub        func() (version.ServerVersions, error)
+	ServerVersionsStub        func(receptorTarget string) (version.ServerVersions, error)
 	serverVersionsMutex       sync.RWMutex
-	serverVersionsArgsForCall []struct{}
-	serverVersionsReturns     struct {
+	serverVersionsArgsForCall []struct {
+		receptorTarget string
+	}
+	serverVersionsReturns struct {
 		result1 version.ServerVersions
 		result2 error
 	}
@@ -32,10 +34,12 @@ type FakeVersionManager struct {
 	latticeVersionReturns     struct {
 		result1 string
 	}
-	LtcMatchesServerStub        func() (bool, error)
+	LtcMatchesServerStub        func(receptorTarget string) (bool, error)
 	ltcMatchesServerMutex       sync.RWMutex
-	ltcMatchesServerArgsForCall []struct{}
-	ltcMatchesServerReturns     struct {
+	ltcMatchesServerArgsForCall []struct {
+		receptorTarget string
+	}
+	ltcMatchesServerReturns struct {
 		result1 bool
 		result2 error
 	}
@@ -75,12 +79,14 @@ func (fake *FakeVersionManager) SyncLTCReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeVersionManager) ServerVersions() (version.ServerVersions, error) {
+func (fake *FakeVersionManager) ServerVersions(receptorTarget string) (version.ServerVersions, error) {
 	fake.serverVersionsMutex.Lock()
-	fake.serverVersionsArgsForCall = append(fake.serverVersionsArgsForCall, struct{}{})
+	fake.serverVersionsArgsForCall = append(fake.serverVersionsArgsForCall, struct {
+		receptorTarget string
+	}{receptorTarget})
 	fake.serverVersionsMutex.Unlock()
 	if fake.ServerVersionsStub != nil {
-		return fake.ServerVersionsStub()
+		return fake.ServerVersionsStub(receptorTarget)
 	} else {
 		return fake.serverVersionsReturns.result1, fake.serverVersionsReturns.result2
 	}
@@ -90,6 +96,12 @@ func (fake *FakeVersionManager) ServerVersionsCallCount() int {
 	fake.serverVersionsMutex.RLock()
 	defer fake.serverVersionsMutex.RUnlock()
 	return len(fake.serverVersionsArgsForCall)
+}
+
+func (fake *FakeVersionManager) ServerVersionsArgsForCall(i int) string {
+	fake.serverVersionsMutex.RLock()
+	defer fake.serverVersionsMutex.RUnlock()
+	return fake.serverVersionsArgsForCall[i].receptorTarget
 }
 
 func (fake *FakeVersionManager) ServerVersionsReturns(result1 version.ServerVersions, result2 error) {
@@ -124,12 +136,14 @@ func (fake *FakeVersionManager) LatticeVersionReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeVersionManager) LtcMatchesServer() (bool, error) {
+func (fake *FakeVersionManager) LtcMatchesServer(receptorTarget string) (bool, error) {
 	fake.ltcMatchesServerMutex.Lock()
-	fake.ltcMatchesServerArgsForCall = append(fake.ltcMatchesServerArgsForCall, struct{}{})
+	fake.ltcMatchesServerArgsForCall = append(fake.ltcMatchesServerArgsForCall, struct {
+		receptorTarget string
+	}{receptorTarget})
 	fake.ltcMatchesServerMutex.Unlock()
 	if fake.LtcMatchesServerStub != nil {
-		return fake.LtcMatchesServerStub()
+		return fake.LtcMatchesServerStub(receptorTarget)
 	} else {
 		return fake.ltcMatchesServerReturns.result1, fake.ltcMatchesServerReturns.result2
 	}
@@ -139,6 +153,12 @@ func (fake *FakeVersionManager) LtcMatchesServerCallCount() int {
 	fake.ltcMatchesServerMutex.RLock()
 	defer fake.ltcMatchesServerMutex.RUnlock()
 	return len(fake.ltcMatchesServerArgsForCall)
+}
+
+func (fake *FakeVersionManager) LtcMatchesServerArgsForCall(i int) string {
+	fake.ltcMatchesServerMutex.RLock()
+	defer fake.ltcMatchesServerMutex.RUnlock()
+	return fake.ltcMatchesServerArgsForCall[i].receptorTarget
 }
 
 func (fake *FakeVersionManager) LtcMatchesServerReturns(result1 bool, result2 error) {

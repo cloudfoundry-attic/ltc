@@ -212,7 +212,7 @@ func cliCommands(ltcConfigRoot string, exitHandler exit_handler.ExitHandler, con
 	zipper := &zipper_package.DropletArtifactZipper{}
 	dropletRunnerCommandFactory := droplet_runner_command_factory.NewDropletRunnerCommandFactory(*appRunnerCommandFactory, blobStoreVerifier, taskExaminer, dropletRunner, cfIgnore, zipper, config)
 
-	versionManager := version.NewVersionManager(receptorClient, &version.AppFileSwapper{}, defaultLatticeVersion(latticeVersion))
+	versionManager := version.NewVersionManager(receptorClientCreator, &version.AppFileSwapper{}, defaultLatticeVersion(latticeVersion))
 	configCommandFactory := config_command_factory.NewConfigCommandFactory(config, ui, targetVerifier, blobStoreVerifier, exitHandler, versionManager)
 
 	sshCommandFactory := ssh_command_factory.NewSSHCommandFactory(config, ui, exitHandler, appExaminer, ssh.New(exitHandler))

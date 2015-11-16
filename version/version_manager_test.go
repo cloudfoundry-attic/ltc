@@ -13,6 +13,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	config_package "github.com/cloudfoundry-incubator/ltc/config"
+	"github.com/cloudfoundry-incubator/ltc/receptor_client/fake_receptor_client_creator"
 	"github.com/cloudfoundry-incubator/ltc/version"
 	"github.com/cloudfoundry-incubator/ltc/version/fake_file_swapper"
 	"github.com/cloudfoundry-incubator/receptor"
@@ -21,11 +22,12 @@ import (
 
 var _ = Describe("VersionManager", func() {
 	var (
-		fakeFileSwapper    *fake_file_swapper.FakeFileSwapper
-		fakeServer         *ghttp.Server
-		config             *config_package.Config
-		versionManager     version.VersionManager
-		fakeReceptorClient *fake_receptor.FakeClient
+		fakeFileSwapper           *fake_file_swapper.FakeFileSwapper
+		fakeServer                *ghttp.Server
+		config                    *config_package.Config
+		versionManager            version.VersionManager
+		fakeReceptorClientCreator *fake_receptor_client_creator.FakeCreator
+		fakeReceptorClient        *fake_receptor.FakeClient
 
 		ltcTempFile *os.File
 	)
@@ -44,10 +46,12 @@ var _ = Describe("VersionManager", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		fakeReceptorClient = &fake_receptor.FakeClient{}
+		fakeReceptorClientCreator = &fake_receptor_client_creator.FakeCreator{}
+		fakeReceptorClientCreator.CreateReceptorClientReturns(fakeReceptorClient)
 
 		config = config_package.New(nil)
 		config.SetTarget(fakeServerHost + ".xip.io:" + fakeServerPort)
-		versionManager = version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "")
+		versionManager = version.NewVersionManager(fakeReceptorClientCreator, fakeFileSwapper, "")
 	})
 
 	AfterEach(func() {
@@ -67,7 +71,12 @@ var _ = Describe("VersionManager", func() {
 				LTC:                 "v225",
 				Receptor:            "v226",
 			}, nil)
-			serverVersions, _ := versionManager.ServerVersions()
+
+			serverVersions, _ := versionManager.ServerVersions("some-target")
+
+			Expect(fakeReceptorClientCreator.CreateReceptorClientCallCount()).To(Equal(1))
+			Expect(fakeReceptorClientCreator.CreateReceptorClientArgsForCall(0)).To(Equal("some-target"))
+
 			Expect(serverVersions).To(Equal(version.ServerVersions{
 				CFRelease:           "v219",
 				CFRoutingRelease:    "v220",
@@ -85,7 +94,7 @@ var _ = Describe("VersionManager", func() {
 				err := errors.New("error")
 				fakeReceptorClient.GetVersionReturns(receptor.VersionResponse{}, err)
 
-				_, actualError := versionManager.ServerVersions()
+				_, actualError := versionManager.ServerVersions("")
 				Expect(actualError).To(Equal(err))
 			})
 		})
@@ -207,7 +216,7 @@ var _ = Describe("VersionManager", func() {
 
 	Describe("#LatticeVersion", func() {
 		It("should return its latticeVersion", func() {
-			versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "some-version")
+			versionManager := version.NewVersionManager(fakeReceptorClientCreator, fakeFileSwapper, "some-version")
 			Expect(versionManager.LatticeVersion()).To(Equal("some-version"))
 		})
 	})
@@ -228,15 +237,19 @@ var _ = Describe("VersionManager", func() {
 
 		Context("when the local lattice version matches the server's expected version", func() {
 			It("should return true", func() {
-				versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "v223")
-				Expect(versionManager.LtcMatchesServer()).To(BeTrue())
+				versionManager := version.NewVersionManager(fakeReceptorClientCreator, fakeFileSwapper, "v223")
+				Expect(versionManager.LtcMatchesServer("some-target")).To(BeTrue())
+				Expect(fakeReceptorClientCreator.CreateReceptorClientCallCount()).To(Equal(1))
+				Expect(fakeReceptorClientCreator.CreateReceptorClientArgsForCall(0)).To(Equal("some-target"))
 			})
 		})
 
 		Context("when the local lattice version does not match the server's expected version", func() {
 			It("should return false", func() {
-				versionManager := version.NewVersionManager(fakeReceptorClient, fakeFileSwapper, "mismatched-version")
-				Expect(versionManager.LtcMatchesServer()).To(BeFalse())
+				versionManager := version.NewVersionManager(fakeReceptorClientCreator, fakeFileSwapper, "mismatched-version")
+				Expect(versionManager.LtcMatchesServer("some-target")).To(BeFalse())
+				Expect(fakeReceptorClientCreator.CreateReceptorClientCallCount()).To(Equal(1))
+				Expect(fakeReceptorClientCreator.CreateReceptorClientArgsForCall(0)).To(Equal("some-target"))
 			})
 		})
 	})
