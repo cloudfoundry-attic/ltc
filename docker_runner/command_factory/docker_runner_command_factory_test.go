@@ -1113,7 +1113,7 @@ var _ = Describe("CommandFactory", func() {
 				}
 				test_helpers.ExecuteCommandWithArgs(createCommand, args)
 
-				Expect(outputBuffer).To(test_helpers.SayLine("Invalid repository name (¥¥¥Bad-Docker¥¥¥), only [a-z0-9-_.] are allowed"))
+				Expect(outputBuffer).To(test_helpers.Say("repository name component must match"))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.CommandFailed}))
 			})
 		})

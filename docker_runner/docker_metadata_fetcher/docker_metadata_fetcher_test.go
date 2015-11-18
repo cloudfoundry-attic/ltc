@@ -41,7 +41,6 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 					&registry.RepositoryData{
 						ImgList:   imageList,
 						Endpoints: []string{"https://registry-1.docker.io/v1/"},
-						Tokens:    []string{"signature=abc,repository=\"cloudfoundry/lattice-app\",access=read"},
 					}, nil)
 				fakeDockerSession.GetRemoteTagsReturns(map[string]string{"latest": "29d531509fb"}, nil)
 				fakeDockerSession.GetRemoteImageJSONReturns(
@@ -76,16 +75,14 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 				Expect(fakeDockerSession.GetRepositoryDataArgsForCall(0)).To(Equal(dockerImageNoTag))
 
 				Expect(fakeDockerSession.GetRemoteTagsCallCount()).To(Equal(1))
-				registries, repo, tokens := fakeDockerSession.GetRemoteTagsArgsForCall(0)
+				registries, repo := fakeDockerSession.GetRemoteTagsArgsForCall(0)
 				Expect(registries).To(ConsistOf("https://registry-1.docker.io/v1/"))
 				Expect(repo).To(Equal("cool_user123/sweetapp"))
-				Expect(tokens).To(ConsistOf("signature=abc,repository=\"cloudfoundry/lattice-app\",access=read"))
 
 				Expect(fakeDockerSession.GetRemoteImageJSONCallCount()).To(Equal(1))
-				imgIDParam, remoteImageEndpointParam, remoteImageTokensParam := fakeDockerSession.GetRemoteImageJSONArgsForCall(0)
+				imgIDParam, remoteImageEndpointParam := fakeDockerSession.GetRemoteImageJSONArgsForCall(0)
 				Expect(imgIDParam).To(Equal("29d531509fb"))
 				Expect(remoteImageEndpointParam).To(Equal("https://registry-1.docker.io/v1/"))
-				Expect(remoteImageTokensParam).To(ConsistOf("signature=abc,repository=\"cloudfoundry/lattice-app\",access=read"))
 			})
 		})
 
@@ -104,7 +101,6 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 					&registry.RepositoryData{
 						ImgList:   imageList,
 						Endpoints: []string{"http://my.custom.registry:5000/v1/"},
-						Tokens:    []string{"signature=abc,repository=\"library/savory-app\",access=read"},
 					}, nil)
 				fakeDockerSession.GetRemoteTagsReturns(map[string]string{"latest": "29d531509fb"}, nil)
 				fakeDockerSession.GetRemoteImageJSONReturns(
@@ -138,16 +134,14 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 				Expect(fakeDockerSession.GetRepositoryDataArgsForCall(0)).To(Equal("savory-app"))
 
 				Expect(fakeDockerSession.GetRemoteTagsCallCount()).To(Equal(1))
-				registries, repo, tokens := fakeDockerSession.GetRemoteTagsArgsForCall(0)
+				registries, repo := fakeDockerSession.GetRemoteTagsArgsForCall(0)
 				Expect(registries).To(ConsistOf("http://my.custom.registry:5000/v1/"))
 				Expect(repo).To(Equal("savory-app"))
-				Expect(tokens).To(ConsistOf("signature=abc,repository=\"library/savory-app\",access=read"))
 
 				Expect(fakeDockerSession.GetRemoteImageJSONCallCount()).To(Equal(1))
-				imgIDParam, remoteImageEndpointParam, remoteImageTokensParam := fakeDockerSession.GetRemoteImageJSONArgsForCall(0)
+				imgIDParam, remoteImageEndpointParam := fakeDockerSession.GetRemoteImageJSONArgsForCall(0)
 				Expect(imgIDParam).To(Equal("29d531509fb"))
 				Expect(remoteImageEndpointParam).To(Equal("http://my.custom.registry:5000/v1/"))
-				Expect(remoteImageTokensParam).To(ConsistOf("signature=abc,repository=\"library/savory-app\",access=read"))
 			})
 		})
 
@@ -174,7 +168,6 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 					&registry.RepositoryData{
 						ImgList:   imageList,
 						Endpoints: []string{"http://my.custom.registry:5000/v1/"},
-						Tokens:    []string{"signature=abc,repository=\"library/savory-app\",access=read"},
 					}, nil)
 				fakeDockerSession.GetRemoteTagsReturns(map[string]string{"latest": "29d531509fb"}, nil)
 				fakeDockerSession.GetRemoteImageJSONReturns(
@@ -215,16 +208,14 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 				Expect(fakeDockerSession.GetRepositoryDataArgsForCall(0)).To(Equal("savory-app"))
 
 				Expect(fakeDockerSession.GetRemoteTagsCallCount()).To(Equal(1))
-				registries, repo, tokens := fakeDockerSession.GetRemoteTagsArgsForCall(0)
+				registries, repo := fakeDockerSession.GetRemoteTagsArgsForCall(0)
 				Expect(registries).To(ConsistOf("http://my.custom.registry:5000/v1/"))
 				Expect(repo).To(Equal("savory-app"))
-				Expect(tokens).To(ConsistOf("signature=abc,repository=\"library/savory-app\",access=read"))
 
 				Expect(fakeDockerSession.GetRemoteImageJSONCallCount()).To(Equal(1))
-				imgIDParam, remoteImageEndpointParam, remoteImageTokensParam := fakeDockerSession.GetRemoteImageJSONArgsForCall(0)
+				imgIDParam, remoteImageEndpointParam := fakeDockerSession.GetRemoteImageJSONArgsForCall(0)
 				Expect(imgIDParam).To(Equal("29d531509fb"))
 				Expect(remoteImageEndpointParam).To(Equal("http://my.custom.registry:5000/v1/"))
-				Expect(remoteImageTokensParam).To(ConsistOf("signature=abc,repository=\"library/savory-app\",access=read"))
 			})
 
 			Context("when getting another error after retrying", func() {
@@ -265,7 +256,6 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 					&registry.RepositoryData{
 						ImgList:   imageList,
 						Endpoints: []string{"https://registry-1.docker.io/v1/"},
-						Tokens:    []string{"signature=abc,repository=\"cloudfoundry/lattice-app\",access=read"},
 					}, nil)
 
 				fakeDockerSession.GetRemoteTagsReturns(map[string]string{"latest": "29d531509fb"}, nil)
@@ -294,7 +284,7 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 		Context("when there is an error parsing the docker image reference", func() {
 			It("returns an error", func() {
 				_, err := dockerMetadataFetcher.FetchMetadata("bad/appName")
-				Expect(err).To(MatchError("Invalid namespace name (bad). Cannot be fewer than 4 or more than 30 characters."))
+				Expect(err).To(MatchError(ContainSubstring("repository name component must match")))
 			})
 		})
 
@@ -322,9 +312,7 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 				fakeDockerSessionFactory.MakeSessionReturns(fakeDockerSession, nil)
 				fakeDockerSession.GetRepositoryDataReturns(
 					&registry.RepositoryData{
-						ImgList:   map[string]*registry.ImgData{},
-						Endpoints: []string{},
-						Tokens:    []string{},
+						ImgList: map[string]*registry.ImgData{},
 					}, nil)
 				fakeDockerSession.GetRemoteTagsReturns(nil, errors.New("Can't get tags!"))
 
@@ -348,7 +336,6 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 					&registry.RepositoryData{
 						ImgList:   imageList,
 						Endpoints: []string{"https://registry-1.docker.io/v1/"},
-						Tokens:    []string{"signature=abc,repository=\"cloudfoundry/lattice-app\",access=read"},
 					}, nil)
 				fakeDockerSession.GetRemoteTagsReturns(map[string]string{"latest": "29d531509fb"}, nil)
 
@@ -372,7 +359,6 @@ var _ = Describe("DockerMetaDataFetcher", func() {
 					&registry.RepositoryData{
 						ImgList:   imageList,
 						Endpoints: []string{"https://registry-1.docker.io/v1/"},
-						Tokens:    []string{"signature=abc,repository=\"cloudfoundry/lattice-app\",access=read"},
 					}, nil)
 				fakeDockerSession.GetRemoteTagsReturns(map[string]string{"latest": "29d531509fb"}, nil)
 			})

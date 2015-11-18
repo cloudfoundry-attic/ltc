@@ -2,16 +2,17 @@ package docker_metadata_fetcher
 
 import (
 	"fmt"
+	"net/http"
 
+	"github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/registry"
-	"github.com/docker/docker/utils"
 )
 
 //go:generate counterfeiter -o fake_docker_session/fake_docker_session.go . DockerSession
 type DockerSession interface {
 	GetRepositoryData(remote string) (*registry.RepositoryData, error)
-	GetRemoteTags(registries []string, repository string, token []string) (map[string]string, error)
-	GetRemoteImageJSON(imgID, registry string, token []string) ([]byte, int, error)
+	GetRemoteTags(registries []string, repository string) (map[string]string, error)
+	GetRemoteImageJSON(imgID, registry string) ([]byte, int, error)
 }
 
 //go:generate counterfeiter -o fake_docker_session/fake_docker_session_factory.go . DockerSessionFactory
@@ -34,11 +35,11 @@ func (factory *dockerSessionFactory) MakeSession(reposName string, allowInsecure
 	if allowInsecure {
 		repositoryInfo.Index.Secure = false
 	}
-	endpoint, err := registry.NewEndpoint(repositoryInfo.Index)
+	endpoint, err := registry.NewEndpoint(repositoryInfo.Index, nil, registry.APIVersionUnknown)
 	if err != nil {
 		return nil, fmt.Errorf("Error Connecting to Docker registry:\n" + err.Error())
 	}
-	authConfig := &registry.AuthConfig{}
-	session, error := registry.NewSession(authConfig, utils.NewHTTPRequestFactory(), endpoint, true)
+	authConfig := &cliconfig.AuthConfig{}
+	session, error := registry.NewSession(http.DefaultClient, authConfig, endpoint)
 	return session, error
 }

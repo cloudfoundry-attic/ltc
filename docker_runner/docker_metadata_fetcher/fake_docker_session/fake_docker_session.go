@@ -18,23 +18,21 @@ type FakeDockerSession struct {
 		result1 *registry.RepositoryData
 		result2 error
 	}
-	GetRemoteTagsStub        func(registries []string, repository string, token []string) (map[string]string, error)
+	GetRemoteTagsStub        func(registries []string, repository string) (map[string]string, error)
 	getRemoteTagsMutex       sync.RWMutex
 	getRemoteTagsArgsForCall []struct {
 		registries []string
 		repository string
-		token      []string
 	}
 	getRemoteTagsReturns struct {
 		result1 map[string]string
 		result2 error
 	}
-	GetRemoteImageJSONStub        func(imgID, registry string, token []string) ([]byte, int, error)
+	GetRemoteImageJSONStub        func(imgID, registry string) ([]byte, int, error)
 	getRemoteImageJSONMutex       sync.RWMutex
 	getRemoteImageJSONArgsForCall []struct {
 		imgID    string
 		registry string
-		token    []string
 	}
 	getRemoteImageJSONReturns struct {
 		result1 []byte
@@ -76,16 +74,15 @@ func (fake *FakeDockerSession) GetRepositoryDataReturns(result1 *registry.Reposi
 	}{result1, result2}
 }
 
-func (fake *FakeDockerSession) GetRemoteTags(registries []string, repository string, token []string) (map[string]string, error) {
+func (fake *FakeDockerSession) GetRemoteTags(registries []string, repository string) (map[string]string, error) {
 	fake.getRemoteTagsMutex.Lock()
 	fake.getRemoteTagsArgsForCall = append(fake.getRemoteTagsArgsForCall, struct {
 		registries []string
 		repository string
-		token      []string
-	}{registries, repository, token})
+	}{registries, repository})
 	fake.getRemoteTagsMutex.Unlock()
 	if fake.GetRemoteTagsStub != nil {
-		return fake.GetRemoteTagsStub(registries, repository, token)
+		return fake.GetRemoteTagsStub(registries, repository)
 	} else {
 		return fake.getRemoteTagsReturns.result1, fake.getRemoteTagsReturns.result2
 	}
@@ -97,10 +94,10 @@ func (fake *FakeDockerSession) GetRemoteTagsCallCount() int {
 	return len(fake.getRemoteTagsArgsForCall)
 }
 
-func (fake *FakeDockerSession) GetRemoteTagsArgsForCall(i int) ([]string, string, []string) {
+func (fake *FakeDockerSession) GetRemoteTagsArgsForCall(i int) ([]string, string) {
 	fake.getRemoteTagsMutex.RLock()
 	defer fake.getRemoteTagsMutex.RUnlock()
-	return fake.getRemoteTagsArgsForCall[i].registries, fake.getRemoteTagsArgsForCall[i].repository, fake.getRemoteTagsArgsForCall[i].token
+	return fake.getRemoteTagsArgsForCall[i].registries, fake.getRemoteTagsArgsForCall[i].repository
 }
 
 func (fake *FakeDockerSession) GetRemoteTagsReturns(result1 map[string]string, result2 error) {
@@ -111,16 +108,15 @@ func (fake *FakeDockerSession) GetRemoteTagsReturns(result1 map[string]string, r
 	}{result1, result2}
 }
 
-func (fake *FakeDockerSession) GetRemoteImageJSON(imgID string, registry string, token []string) ([]byte, int, error) {
+func (fake *FakeDockerSession) GetRemoteImageJSON(imgID string, registry string) ([]byte, int, error) {
 	fake.getRemoteImageJSONMutex.Lock()
 	fake.getRemoteImageJSONArgsForCall = append(fake.getRemoteImageJSONArgsForCall, struct {
 		imgID    string
 		registry string
-		token    []string
-	}{imgID, registry, token})
+	}{imgID, registry})
 	fake.getRemoteImageJSONMutex.Unlock()
 	if fake.GetRemoteImageJSONStub != nil {
-		return fake.GetRemoteImageJSONStub(imgID, registry, token)
+		return fake.GetRemoteImageJSONStub(imgID, registry)
 	} else {
 		return fake.getRemoteImageJSONReturns.result1, fake.getRemoteImageJSONReturns.result2, fake.getRemoteImageJSONReturns.result3
 	}
@@ -132,10 +128,10 @@ func (fake *FakeDockerSession) GetRemoteImageJSONCallCount() int {
 	return len(fake.getRemoteImageJSONArgsForCall)
 }
 
-func (fake *FakeDockerSession) GetRemoteImageJSONArgsForCall(i int) (string, string, []string) {
+func (fake *FakeDockerSession) GetRemoteImageJSONArgsForCall(i int) (string, string) {
 	fake.getRemoteImageJSONMutex.RLock()
 	defer fake.getRemoteImageJSONMutex.RUnlock()
-	return fake.getRemoteImageJSONArgsForCall[i].imgID, fake.getRemoteImageJSONArgsForCall[i].registry, fake.getRemoteImageJSONArgsForCall[i].token
+	return fake.getRemoteImageJSONArgsForCall[i].imgID, fake.getRemoteImageJSONArgsForCall[i].registry
 }
 
 func (fake *FakeDockerSession) GetRemoteImageJSONReturns(result1 []byte, result2 int, result3 error) {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/ltc/docker_runner/docker_repository_name_formatter"
 	"github.com/docker/docker/image"
-	"github.com/docker/docker/nat"
+	"github.com/docker/docker/pkg/nat"
 )
 
 type ImageMetadata struct {
@@ -63,7 +63,7 @@ func (fetcher *dockerMetadataFetcher) FetchMetadata(dockerPath string) (*ImageMe
 		return nil, err
 	}
 
-	tagsList, err := session.GetRemoteTags(repoData.Endpoints, remoteName, repoData.Tokens)
+	tagsList, err := session.GetRemoteTags(repoData.Endpoints, remoteName)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (fetcher *dockerMetadataFetcher) FetchMetadata(dockerPath string) (*ImageMe
 
 	var img *image.Image
 	endpoint := repoData.Endpoints[0]
-	imgJSON, _, err := session.GetRemoteImageJSON(imgID, endpoint, repoData.Tokens)
+	imgJSON, _, err := session.GetRemoteImageJSON(imgID, endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (fetcher *dockerMetadataFetcher) FetchMetadata(dockerPath string) (*ImageMe
 		return nil, fmt.Errorf("Parsing start command failed")
 	}
 
-	startCommand := append(img.Config.Entrypoint, img.Config.Cmd...)
+	startCommand := append(img.Config.Entrypoint.Slice(), img.Config.Cmd.Slice()...)
 	exposedPorts := sortPorts(img.ContainerConfig.ExposedPorts)
 
 	return &ImageMetadata{

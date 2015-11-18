@@ -8,6 +8,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	"github.com/cloudfoundry-incubator/ltc/docker_runner/docker_metadata_fetcher"
+	"github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/registry"
 )
 
@@ -45,7 +46,7 @@ var _ = Describe("DockerSessionFactory", func() {
 
 					registrySession, ok := session.(*registry.Session)
 					Expect(ok).To(BeTrue())
-					Expect(*registrySession.GetAuthConfig(true)).To(Equal(registry.AuthConfig{}))
+					Expect(*registrySession.GetAuthConfig(true)).To(Equal(cliconfig.AuthConfig{}))
 
 					Expect(dockerRegistryServer.ReceivedRequests()).To(HaveLen(2))
 				})
@@ -58,7 +59,7 @@ var _ = Describe("DockerSessionFactory", func() {
 
 					registrySession, ok := session.(*registry.Session)
 					Expect(ok).To(BeTrue())
-					Expect(*registrySession.GetAuthConfig(true)).To(Equal(registry.AuthConfig{}))
+					Expect(*registrySession.GetAuthConfig(true)).To(Equal(cliconfig.AuthConfig{}))
 
 					Expect(dockerRegistryServer.ReceivedRequests()).To(HaveLen(2))
 				})
@@ -68,7 +69,7 @@ var _ = Describe("DockerSessionFactory", func() {
 		Context("when resolving the repo name fails", func() {
 			It("returns errors from resolving the repo name", func() {
 				_, err := sessionFactory.MakeSession("¥Not-A-Valid-Repo-Name¥"+"/lattice-mappppppppppppappapapa", false)
-				Expect(err).To(MatchError(ContainSubstring("Error resolving Docker repository name:\nInvalid namespace name")))
+				Expect(err).To(MatchError(ContainSubstring("Error resolving Docker repository name:\nrepository name component must match")))
 
 				Expect(dockerRegistryServer.ReceivedRequests()).To(HaveLen(0))
 			})

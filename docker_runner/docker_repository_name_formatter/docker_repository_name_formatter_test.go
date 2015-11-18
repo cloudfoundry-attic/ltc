@@ -76,12 +76,7 @@ var _ = Describe("DockerRepositoryNameFormatter", func() {
 
 			It("returns an error for an invalid repository name", func() {
 				_, err := docker_repository_name_formatter.FormatForReceptor("¥¥¥¥¥suchabadname¥¥¥¥¥")
-				Expect(err).To(MatchError("Invalid repository name (¥¥¥¥¥suchabadname¥¥¥¥¥), only [a-z0-9-_.] are allowed"))
-			})
-
-			It("returns an error for an invalid namespace name", func() {
-				_, err := docker_repository_name_formatter.FormatForReceptor("jim/my-docker-app")
-				Expect(err).To(MatchError("Invalid namespace name (jim). Cannot be fewer than 4 or more than 30 characters."))
+				Expect(err).To(MatchError(ContainSubstring("repository name component must match")))
 			})
 		})
 	})
@@ -158,15 +153,8 @@ var _ = Describe("DockerRepositoryNameFormatter", func() {
 		Context("when the repository name fails docker validation", func() {
 			It("returns an error for an invalid repository name", func() {
 				_, _, _, err := docker_repository_name_formatter.ParseRepoNameAndTagFromImageReference("¥¥¥¥¥suchabadname¥¥¥¥¥")
-				Expect(err).To(MatchError(ContainSubstring("Invalid repository name (¥¥¥¥¥suchabadname¥¥¥¥¥), only [a-z0-9-_.] are allowed")))
-			})
-
-			It("returns an error for an invalid namespace name", func() {
-				dockerPath := "jim/my-docker-app"
-				_, _, _, err := docker_repository_name_formatter.ParseRepoNameAndTagFromImageReference(dockerPath)
-				Expect(err).To(MatchError(ContainSubstring("Invalid namespace name (jim). Cannot be fewer than 4 or more than 30 characters.")))
+				Expect(err).To(MatchError(ContainSubstring("repository name component must match")))
 			})
 		})
 	})
-
 })
