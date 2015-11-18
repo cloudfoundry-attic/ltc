@@ -111,7 +111,7 @@ func (factory *DropletRunnerCommandFactory) MakeBuildDropletCommand() cli.Comman
 		cli.IntFlag{
 			Name:  "memory-mb, m",
 			Usage: "Memory limit for container in MB",
-			Value: 128,
+			Value: 512,
 		},
 		cli.IntFlag{
 			Name:  "disk-mb, d",
@@ -157,7 +157,7 @@ func (factory *DropletRunnerCommandFactory) MakeLaunchDropletCommand() cli.Comma
 		cli.IntFlag{
 			Name:  "memory-mb, m",
 			Usage: "Memory limit for container in MB",
-			Value: 128,
+			Value: 256,
 		},
 		cli.IntFlag{
 			Name:  "disk-mb, d",
