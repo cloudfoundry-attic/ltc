@@ -272,14 +272,13 @@ func (factory *DropletRunnerCommandFactory) MakeImportDropletCommand() cli.Comma
 func (factory *DropletRunnerCommandFactory) importDroplet(context *cli.Context) {
 	dropletName := context.Args().First()
 	dropletPath := context.Args().Get(1)
-	metadataPath := context.Args().Get(2)
-	if dropletName == "" || dropletPath == "" || metadataPath == "" {
-		factory.UI.SayIncorrectUsage("<droplet-name>, <droplet-path> and <metadata-path> are required")
+	if dropletName == "" || dropletPath == "" {
+		factory.UI.SayIncorrectUsage("<droplet-name> and <droplet-path> are required")
 		factory.ExitHandler.Exit(exit_codes.InvalidSyntax)
 		return
 	}
 
-	if err := factory.dropletRunner.ImportDroplet(dropletName, dropletPath, metadataPath); err != nil {
+	if err := factory.dropletRunner.ImportDroplet(dropletName, dropletPath); err != nil {
 		factory.UI.SayLine(fmt.Sprintf("Error importing %s: %s", dropletName, err))
 		factory.ExitHandler.Exit(exit_codes.CommandFailed)
 		return

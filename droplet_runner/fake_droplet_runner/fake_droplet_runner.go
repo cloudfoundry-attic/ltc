@@ -69,12 +69,11 @@ type FakeDropletRunner struct {
 		result1 io.ReadCloser
 		result2 error
 	}
-	ImportDropletStub        func(dropletName, dropletPath, metadataPath string) error
+	ImportDropletStub        func(dropletName, dropletPath string) error
 	importDropletMutex       sync.RWMutex
 	importDropletArgsForCall []struct {
-		dropletName  string
-		dropletPath  string
-		metadataPath string
+		dropletName string
+		dropletPath string
 	}
 	importDropletReturns struct {
 		result1 error
@@ -278,16 +277,15 @@ func (fake *FakeDropletRunner) ExportDropletReturns(result1 io.ReadCloser, resul
 	}{result1, result2}
 }
 
-func (fake *FakeDropletRunner) ImportDroplet(dropletName string, dropletPath string, metadataPath string) error {
+func (fake *FakeDropletRunner) ImportDroplet(dropletName string, dropletPath string) error {
 	fake.importDropletMutex.Lock()
 	fake.importDropletArgsForCall = append(fake.importDropletArgsForCall, struct {
-		dropletName  string
-		dropletPath  string
-		metadataPath string
-	}{dropletName, dropletPath, metadataPath})
+		dropletName string
+		dropletPath string
+	}{dropletName, dropletPath})
 	fake.importDropletMutex.Unlock()
 	if fake.ImportDropletStub != nil {
-		return fake.ImportDropletStub(dropletName, dropletPath, metadataPath)
+		return fake.ImportDropletStub(dropletName, dropletPath)
 	} else {
 		return fake.importDropletReturns.result1
 	}
@@ -299,10 +297,10 @@ func (fake *FakeDropletRunner) ImportDropletCallCount() int {
 	return len(fake.importDropletArgsForCall)
 }
 
-func (fake *FakeDropletRunner) ImportDropletArgsForCall(i int) (string, string, string) {
+func (fake *FakeDropletRunner) ImportDropletArgsForCall(i int) (string, string) {
 	fake.importDropletMutex.RLock()
 	defer fake.importDropletMutex.RUnlock()
-	return fake.importDropletArgsForCall[i].dropletName, fake.importDropletArgsForCall[i].dropletPath, fake.importDropletArgsForCall[i].metadataPath
+	return fake.importDropletArgsForCall[i].dropletName, fake.importDropletArgsForCall[i].dropletPath
 }
 
 func (fake *FakeDropletRunner) ImportDropletReturns(result1 error) {

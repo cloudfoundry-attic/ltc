@@ -1050,7 +1050,7 @@ var _ = Describe("CommandFactory", func() {
 		})
 
 		Context("when the droplet files exist", func() {
-			var tmpDir, dropletPathArg, metadataPathArg string
+			var tmpDir, dropletPathArg string
 
 			BeforeEach(func() {
 				var err error
@@ -1058,31 +1058,28 @@ var _ = Describe("CommandFactory", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				dropletPathArg = filepath.Join(tmpDir, "droplet.tgz")
-				metadataPathArg = filepath.Join(tmpDir, "result.json")
 				Expect(ioutil.WriteFile(dropletPathArg, []byte("droplet contents"), 0644)).To(Succeed())
-				Expect(ioutil.WriteFile(metadataPathArg, []byte("result metadata"), 0644)).To(Succeed())
 			})
 			AfterEach(func() {
 				Expect(os.RemoveAll(tmpDir)).To(Succeed())
 			})
 
 			It("imports the droplet", func() {
-				test_helpers.ExecuteCommandWithArgs(importDropletCommand, []string{"droplet-name", dropletPathArg, metadataPathArg})
+				test_helpers.ExecuteCommandWithArgs(importDropletCommand, []string{"droplet-name", dropletPathArg})
 
 				Expect(outputBuffer).To(test_helpers.SayLine("Imported droplet-name"))
 
 				Expect(fakeDropletRunner.ImportDropletCallCount()).To(Equal(1))
-				dropletName, dropletPath, metadataPath := fakeDropletRunner.ImportDropletArgsForCall(0)
+				dropletName, dropletPath := fakeDropletRunner.ImportDropletArgsForCall(0)
 				Expect(dropletName).To(Equal("droplet-name"))
 				Expect(dropletPath).To(Equal(dropletPathArg))
-				Expect(metadataPath).To(Equal(metadataPathArg))
 			})
 
 			Context("when the droplet runner returns an error", func() {
 				It("prints the error message", func() {
 					fakeDropletRunner.ImportDropletReturns(errors.New("dont tread on me"))
 
-					test_helpers.ExecuteCommandWithArgs(importDropletCommand, []string{"droplet-name", dropletPathArg, metadataPathArg})
+					test_helpers.ExecuteCommandWithArgs(importDropletCommand, []string{"droplet-name", dropletPathArg})
 
 					Expect(outputBuffer).To(test_helpers.SayLine("Error importing droplet-name: dont tread on me"))
 					Expect(fakeDropletRunner.ImportDropletCallCount()).To(Equal(1))
@@ -1093,9 +1090,9 @@ var _ = Describe("CommandFactory", func() {
 
 		Context("when required arguments are missing", func() {
 			It("prints incorrect usage", func() {
-				test_helpers.ExecuteCommandWithArgs(importDropletCommand, []string{"droplet-name", "some-path"})
+				test_helpers.ExecuteCommandWithArgs(importDropletCommand, []string{"droplet-name"})
 
-				Expect(outputBuffer).To(test_helpers.SayLine("<droplet-name>, <droplet-path> and <metadata-path> are required"))
+				Expect(outputBuffer).To(test_helpers.SayLine("<droplet-name> and <droplet-path> are required"))
 				Expect(fakeDropletRunner.ImportDropletCallCount()).To(Equal(0))
 				Expect(fakeExitHandler.ExitCalledWith).To(Equal([]int{exit_codes.InvalidSyntax}))
 			})

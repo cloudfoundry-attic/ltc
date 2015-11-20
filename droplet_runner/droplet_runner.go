@@ -33,7 +33,7 @@ type DropletRunner interface {
 	ListDroplets() ([]Droplet, error)
 	RemoveDroplet(dropletName string) error
 	ExportDroplet(dropletName string) (io.ReadCloser, error)
-	ImportDroplet(dropletName, dropletPath, metadataPath string) error
+	ImportDroplet(dropletName, dropletPath string) error
 }
 
 type Droplet struct {
@@ -306,24 +306,14 @@ func (dr *dropletRunner) ExportDroplet(dropletName string) (io.ReadCloser, error
 	return dropletReader, err
 }
 
-func (dr *dropletRunner) ImportDroplet(dropletName, dropletPath, metadataPath string) error {
+func (dr *dropletRunner) ImportDroplet(dropletName, dropletPath string) error {
 	dropletFile, err := os.Open(dropletPath)
 	if err != nil {
 		return err
 	}
 	defer dropletFile.Close()
 
-	metadataFile, err := os.Open(metadataPath)
-	if err != nil {
-		return err
-	}
-	defer metadataFile.Close()
-
 	if err := dr.blobStore.Upload(path.Join(dropletName, "droplet.tgz"), dropletFile); err != nil {
-		return err
-	}
-
-	if err := dr.blobStore.Upload(path.Join(dropletName, "result.json"), metadataFile); err != nil {
 		return err
 	}
 
