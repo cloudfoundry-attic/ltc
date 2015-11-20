@@ -215,7 +215,7 @@ var _ = Describe("BlobStore", func() {
 								"some-secret-key",
 								"bucket",
 								"some-s3-region",
-								"/droplet-name/bits.zip",
+								"/droplet-name-bits.zip",
 								"/tmp/bits.zip",
 							},
 							User: "vcap",
@@ -247,7 +247,7 @@ var _ = Describe("BlobStore", func() {
 						"some-secret-key",
 						"bucket",
 						"some-s3-region",
-						"/droplet-name/bits.zip",
+						"/droplet-name-bits.zip",
 					},
 					User:      "vcap",
 					LogSource: "DROPLET",
@@ -266,28 +266,8 @@ var _ = Describe("BlobStore", func() {
 						"some-secret-key",
 						"bucket",
 						"some-s3-region",
-						"/droplet-name/droplet.tgz",
+						"/droplet-name-droplet.tgz",
 						"/tmp/droplet",
-					},
-					User:      "vcap",
-					LogSource: "DROPLET",
-				})))
-			})
-		})
-
-		Describe("#UploadDropletMetadataAction", func() {
-			It("constructs the correct Action to upload the droplet metadata", func() {
-				Expect(blobStore.UploadDropletMetadataAction("droplet-name")).To(Equal(models.WrapAction(&models.RunAction{
-					Path: "/tmp/s3tool",
-					Dir:  "/",
-					Args: []string{
-						"put",
-						"some-access-key",
-						"some-secret-key",
-						"bucket",
-						"some-s3-region",
-						"/droplet-name/result.json",
-						"/tmp/result.json",
 					},
 					User:      "vcap",
 					LogSource: "DROPLET",
@@ -309,7 +289,7 @@ var _ = Describe("BlobStore", func() {
 								"some-secret-key",
 								"bucket",
 								"some-s3-region",
-								"/droplet-name/droplet.tgz",
+								"/droplet-name-droplet.tgz",
 								"/tmp/droplet.tgz",
 							},
 							User: "vcap",

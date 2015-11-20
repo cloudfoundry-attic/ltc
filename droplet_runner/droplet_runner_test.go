@@ -54,11 +54,9 @@ var _ = Describe("DropletRunner", func() {
 	Describe("ListDroplets", func() {
 		It("returns a list of droplets in the blob store", func() {
 			fakeBlobStore.ListReturns([]blob.Blob{
-				{Path: "X/bits.zip", Created: time.Unix(1000, 0), Size: 100},
-				{Path: "X/droplet.tgz", Created: time.Unix(2000, 0), Size: 200},
-				{Path: "X/result.json", Created: time.Unix(3000, 0), Size: 300},
-				{Path: "Y/bits.zip"},
-				{Path: "X/Y/droplet.tgz"},
+				{Path: "X-bits.zip", Created: time.Unix(1000, 0), Size: 100},
+				{Path: "X-droplet.tgz", Created: time.Unix(2000, 0), Size: 200},
+				{Path: "Y-bits.zip"},
 				{Path: "droplet.tgz"},
 			}, nil)
 
@@ -98,7 +96,7 @@ var _ = Describe("DropletRunner", func() {
 
 				Expect(fakeBlobStore.UploadCallCount()).To(Equal(1))
 				path, _ := fakeBlobStore.UploadArgsForCall(0)
-				Expect(path).To(Equal("droplet-name/bits.zip"))
+				Expect(path).To(Equal("droplet-name-bits.zip"))
 			})
 
 			It("returns an error when we fail to open the droplet bits", func() {
@@ -128,7 +126,7 @@ var _ = Describe("DropletRunner", func() {
 				"/blobs/droplet-name")
 
 			fakeBlobStore.DownloadAppBitsActionReturns(models.WrapAction(&models.DownloadAction{
-				From: blobURL + "/bits.zip",
+				From: blobURL + "-bits.zip",
 				To:   "/tmp/app",
 				User: "vcap",
 			}))
@@ -136,24 +134,16 @@ var _ = Describe("DropletRunner", func() {
 			fakeBlobStore.DeleteAppBitsActionReturns(models.WrapAction(&models.RunAction{
 				Path: "/tmp/davtool",
 				Dir:  "/",
-				Args: []string{"delete", blobURL + "/bits.zip"},
+				Args: []string{"delete", blobURL + "-bits.zip"},
 				User: "vcap",
 			}))
 
 			fakeBlobStore.UploadDropletActionReturns(models.WrapAction(&models.RunAction{
 				Path: "/tmp/davtool",
 				Dir:  "/",
-				Args: []string{"put", blobURL + "/droplet.tgz", "/tmp/droplet"},
+				Args: []string{"put", blobURL + "-droplet.tgz", "/tmp/droplet"},
 				User: "vcap",
 			}))
-
-			fakeBlobStore.UploadDropletMetadataActionReturns(models.WrapAction(&models.RunAction{
-				Path: "/tmp/davtool",
-				Dir:  "/",
-				Args: []string{"put", blobURL + "/result.json", "/tmp/result.json"},
-				User: "vcap",
-			}))
-
 			err := dropletRunner.BuildDroplet("task-name", "droplet-name", "buildpack", map[string]string{}, 128, 100, 800)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -175,14 +165,14 @@ var _ = Describe("DropletRunner", func() {
 						User: "vcap",
 					}),
 					models.WrapAction(&models.DownloadAction{
-						From: blobURL + "/bits.zip",
+						From: blobURL + "-bits.zip",
 						To:   "/tmp/app",
 						User: "vcap",
 					}),
 					models.WrapAction(&models.RunAction{
 						Path: "/tmp/davtool",
 						Dir:  "/",
-						Args: []string{"delete", blobURL + "/bits.zip"},
+						Args: []string{"delete", blobURL + "-bits.zip"},
 						User: "vcap",
 					}),
 					models.WrapAction(&models.RunAction{
@@ -210,13 +200,7 @@ var _ = Describe("DropletRunner", func() {
 					models.WrapAction(&models.RunAction{
 						Path: "/tmp/davtool",
 						Dir:  "/",
-						Args: []string{"put", blobURL + "/droplet.tgz", "/tmp/droplet"},
-						User: "vcap",
-					}),
-					models.WrapAction(&models.RunAction{
-						Path: "/tmp/davtool",
-						Dir:  "/",
-						Args: []string{"put", blobURL + "/result.json", "/tmp/result.json"},
+						Args: []string{"put", blobURL + "-droplet.tgz", "/tmp/droplet"},
 						User: "vcap",
 					}),
 				},
@@ -339,11 +323,8 @@ var _ = Describe("DropletRunner", func() {
 		})
 
 		It("launches the droplet lrp task with a start command from buildpack results", func() {
-			executionMetadata := `{"execution_metadata": "{\"start_command\": \"start\"}"}`
-			fakeBlobStore.DownloadReturns(ioutil.NopCloser(strings.NewReader(executionMetadata)), nil)
-
 			fakeBlobStore.DownloadDropletActionReturns(models.WrapAction(&models.DownloadAction{
-				From: "http://dav-user:dav-pass@blob-host:7474/blobs/droplet-name/droplet.tgz",
+				From: "http://dav-user:dav-pass@blob-host:7474/blobs/droplet-name-droplet.tgz",
 				To:   "/home/vcap",
 				User: "vcap",
 			}))
@@ -356,7 +337,7 @@ var _ = Describe("DropletRunner", func() {
 			Expect(createAppParams.Name).To(Equal("app-name"))
 			Expect(createAppParams.RootFS).To(Equal(droplet_runner.DropletRootFS))
 			Expect(createAppParams.StartCommand).To(Equal("/tmp/launcher"))
-			Expect(createAppParams.AppArgs).To(Equal([]string{"/home/vcap/app", "", `{"start_command": "start"}`}))
+			Expect(createAppParams.AppArgs).To(Equal([]string{"/home/vcap/app", "", "{}"}))
 			Expect(createAppParams.WorkingDir).To(Equal("/home/vcap"))
 			Expect(createAppParams.AppEnvironmentParams.EnvironmentVariables).To(matchers.ContainExactly(map[string]string{
 				"PWD":         "/home/vcap",
@@ -380,7 +361,7 @@ var _ = Describe("DropletRunner", func() {
 						User: "vcap",
 					}),
 					models.WrapAction(&models.DownloadAction{
-						From: "http://dav-user:dav-pass@blob-host:7474/blobs/droplet-name/droplet.tgz",
+						From: "http://dav-user:dav-pass@blob-host:7474/blobs/droplet-name-droplet.tgz",
 						To:   "/home/vcap",
 						User: "vcap",
 					}),
@@ -413,9 +394,6 @@ var _ = Describe("DropletRunner", func() {
 		})
 
 		It("launches the droplet lrp task with a custom start command", func() {
-			executionMetadata := `{"execution_metadata": "{\"start_command\": \"start\"}"}`
-			fakeBlobStore.DownloadReturns(ioutil.NopCloser(strings.NewReader(executionMetadata)), nil)
-
 			err := dropletRunner.LaunchDroplet("app-name", "droplet-name", "start-r-up", []string{"-yeah!"}, app_runner.AppEnvironmentParams{})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -423,21 +401,7 @@ var _ = Describe("DropletRunner", func() {
 			createAppParams := fakeAppRunner.CreateAppArgsForCall(0)
 			Expect(createAppParams.Name).To(Equal("app-name"))
 			Expect(createAppParams.StartCommand).To(Equal("/tmp/launcher"))
-			Expect(createAppParams.AppArgs).To(Equal([]string{"/home/vcap/app", "start-r-up -yeah!", `{"start_command": "start"}`}))
-		})
-
-		It("returns an error when it can't retrieve the execution metadata from the blob store", func() {
-			fakeBlobStore.DownloadReturns(nil, errors.New("nope"))
-
-			err := dropletRunner.LaunchDroplet("app-name", "droplet-name", "", []string{}, app_runner.AppEnvironmentParams{})
-			Expect(err).To(MatchError("nope"))
-		})
-
-		It("returns an error when the downloaded execution metadata is invaild JSON", func() {
-			fakeBlobStore.DownloadReturns(ioutil.NopCloser(strings.NewReader("invalid JSON")), nil)
-
-			err := dropletRunner.LaunchDroplet("app-name", "droplet-name", "", []string{}, app_runner.AppEnvironmentParams{})
-			Expect(err).To(MatchError("invalid character 'i' looking for beginning of value"))
+			Expect(createAppParams.AppArgs).To(Equal([]string{"/home/vcap/app", "start-r-up -yeah!", "{}"}))
 		})
 
 		It("returns an error when proxyConf reader fails", func() {
@@ -464,9 +428,8 @@ var _ = Describe("DropletRunner", func() {
 			Expect(config.Save()).To(Succeed())
 
 			fakeBlobStore.ListReturns([]blob.Blob{
-				{Path: "drippy/bits.zip"},
-				{Path: "drippy/droplet.tgz"},
-				{Path: "drippy/result.json"},
+				{Path: "drippy-bits.zip"},
+				{Path: "drippy-droplet.tgz"},
 			}, nil)
 
 			appInfos := []app_examiner.AppInfo{
@@ -490,11 +453,9 @@ var _ = Describe("DropletRunner", func() {
 
 			Expect(fakeBlobStore.ListCallCount()).To(Equal(1))
 
-			Expect(fakeBlobStore.DeleteCallCount()).To(Equal(3))
-			Expect(fakeBlobStore.DeleteArgsForCall(0)).To(Equal("drippy/bits.zip"))
-			Expect(fakeBlobStore.DeleteArgsForCall(1)).To(Equal("drippy/droplet.tgz"))
-			Expect(fakeBlobStore.DeleteArgsForCall(2)).To(Equal("drippy/result.json"))
-
+			Expect(fakeBlobStore.DeleteCallCount()).To(Equal(2))
+			Expect(fakeBlobStore.DeleteArgsForCall(0)).To(Equal("drippy-bits.zip"))
+			Expect(fakeBlobStore.DeleteArgsForCall(1)).To(Equal("drippy-droplet.tgz"))
 		})
 
 		It("returns an error when querying the blob store fails", func() {
@@ -531,9 +492,8 @@ var _ = Describe("DropletRunner", func() {
 
 		It("returns an error when the droplet doesn't exist", func() {
 			fakeBlobStore.ListReturns([]blob.Blob{
-				{Path: "drippy/bits.zip"},
-				{Path: "drippy/droplet.tgz"},
-				{Path: "drippy/result.json"},
+				{Path: "drippy-bits.zip"},
+				{Path: "drippy-droplet.tgz"},
 			}, nil)
 
 			err := dropletRunner.RemoveDroplet("droopy")
@@ -547,9 +507,9 @@ var _ = Describe("DropletRunner", func() {
 
 			fakeBlobStore.DownloadStub = func(path string) (io.ReadCloser, error) {
 				switch path {
-				case "drippy/droplet.tgz":
+				case "drippy-droplet.tgz":
 					return fakeDropletReader, nil
-				case "no-such-droplet/droplet.tgz":
+				case "no-such-droplet-droplet.tgz":
 					return nil, errors.New("some missing droplet error")
 				default:
 					return nil, errors.New("fake GetReader called with invalid arguments")
@@ -557,7 +517,7 @@ var _ = Describe("DropletRunner", func() {
 			}
 		})
 
-		It("returns IO readers for the droplet and its metadata", func() {
+		It("returns IO readers for the droplet", func() {
 			dropletReader, err := dropletRunner.ExportDroplet("drippy")
 			defer dropletReader.Close()
 			Expect(err).NotTo(HaveOccurred())
@@ -596,7 +556,7 @@ var _ = Describe("DropletRunner", func() {
 				Expect(fakeBlobStore.UploadCallCount()).To(Equal(1))
 
 				path, _ := fakeBlobStore.UploadArgsForCall(0)
-				Expect(path).To(Equal("drippy/droplet.tgz"))
+				Expect(path).To(Equal("drippy-droplet.tgz"))
 			})
 
 			Context("when the blob bucket returns error(s)", func() {

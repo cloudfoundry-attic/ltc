@@ -53,38 +53,36 @@ type listResponse struct {
 	} `xml:"response"`
 }
 
-func (b *BlobStore) doListRequest(baseURL *url.URL) (listResponse, error) {
+func (b *BlobStore) List() ([]blob.Blob, error) {
+	baseURL := &url.URL{
+		Scheme: b.URL.Scheme,
+		Host:   b.URL.Host,
+		User:   b.URL.User,
+		Path:   "/blobs",
+	}
+
 	req, err := http.NewRequest("PROPFIND", baseURL.String(), nil)
 	if err != nil {
-		return listResponse{}, err
+		return nil, err
 	}
 
 	req.Header.Add("Depth", "1")
 
 	resp, err := b.Client.Do(req)
 	if err != nil {
-		return listResponse{}, err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 207 {
-		return listResponse{}, errors.New(resp.Status)
+		return nil, errors.New(resp.Status)
 	}
 
 	decoder := xml.NewDecoder(resp.Body)
 
 	var listResp listResponse
 	if err := decoder.Decode(&listResp); err != nil {
-		return listResponse{}, err
-	}
-
-	return listResp, nil
-}
-
-func (b *BlobStore) listBlobFiles(baseURL *url.URL) ([]blob.Blob, error) {
-	listResp, err := b.doListRequest(baseURL)
-	if err != nil {
 		return nil, err
 	}
 
@@ -109,86 +107,12 @@ func (b *BlobStore) listBlobFiles(baseURL *url.URL) ([]blob.Blob, error) {
 	return blobFiles, nil
 }
 
-func (b *BlobStore) List() ([]blob.Blob, error) {
-	baseURL := &url.URL{
-		Scheme: b.URL.Scheme,
-		Host:   b.URL.Host,
-		User:   b.URL.User,
-		Path:   "/blobs",
-	}
-
-	listResp, err := b.doListRequest(baseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	var blobs []blob.Blob
-
-	for _, resp := range listResp.Responses {
-		u, err := url.Parse(resp.HREF)
-		if err != nil {
-			return nil, err
-		}
-
-		u.User = b.URL.User
-
-		if path.Clean(baseURL.Path) == path.Clean(u.Path) {
-			continue
-		}
-
-		blobFiles, err := b.listBlobFiles(u)
-		if err != nil {
-			return nil, err
-		}
-
-		blobs = append(blobs, blobFiles...)
-	}
-
-	return blobs, nil
-}
-
-func (b *BlobStore) ensureParentCollectionExists(baseURL *url.URL) error {
-	parentURL := &url.URL{
-		Scheme: baseURL.Scheme,
-		Host:   baseURL.Host,
-		User:   baseURL.User,
-		Path:   path.Dir(baseURL.Path),
-	}
-	_, err := b.listBlobFiles(parentURL)
-	if err == nil {
-		return nil
-	}
-	if err.Error() != "404 Not Found" {
-		return err
-	}
-
-	req, err := http.NewRequest("MKCOL", parentURL.String(), nil)
-	if err != nil {
-		return err
-	}
-
-	resp, err := b.Client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusCreated {
-		return errors.New(resp.Status)
-	}
-
-	return nil
-}
-
 func (b *BlobStore) Upload(path string, contents io.ReadSeeker) error {
 	baseURL := &url.URL{
 		Scheme: b.URL.Scheme,
 		Host:   b.URL.Host,
 		User:   b.URL.User,
 		Path:   "/blobs/" + path,
-	}
-
-	if err := b.ensureParentCollectionExists(baseURL); err != nil {
-		return err
 	}
 
 	length, err := contents.Seek(0, 2)
@@ -268,7 +192,7 @@ func (b *BlobStore) Delete(path string) error {
 
 func (b *BlobStore) DownloadAppBitsAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.DownloadAction{
-		From:      b.URL.String() + "/blobs/" + dropletName + "/bits.zip",
+		From:      b.URL.String() + "/blobs/" + dropletName + "-bits.zip",
 		To:        "/tmp/app",
 		User:      "vcap",
 		LogSource: "DROPLET",
@@ -279,7 +203,7 @@ func (b *BlobStore) DeleteAppBitsAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.RunAction{
 		Path:      "/tmp/davtool",
 		Dir:       "/",
-		Args:      []string{"delete", b.URL.String() + "/blobs/" + dropletName + "/bits.zip"},
+		Args:      []string{"delete", b.URL.String() + "/blobs/" + dropletName + "-bits.zip"},
 		User:      "vcap",
 		LogSource: "DROPLET",
 	})
@@ -289,17 +213,7 @@ func (b *BlobStore) UploadDropletAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.RunAction{
 		Path:      "/tmp/davtool",
 		Dir:       "/",
-		Args:      []string{"put", b.URL.String() + "/blobs/" + dropletName + "/droplet.tgz", "/tmp/droplet"},
-		User:      "vcap",
-		LogSource: "DROPLET",
-	})
-}
-
-func (b *BlobStore) UploadDropletMetadataAction(dropletName string) *models.Action {
-	return models.WrapAction(&models.RunAction{
-		Path:      "/tmp/davtool",
-		Dir:       "/",
-		Args:      []string{"put", b.URL.String() + "/blobs/" + dropletName + "/result.json", "/tmp/result.json"},
+		Args:      []string{"put", b.URL.String() + "/blobs/" + dropletName + "-droplet.tgz", "/tmp/droplet"},
 		User:      "vcap",
 		LogSource: "DROPLET",
 	})
@@ -307,7 +221,7 @@ func (b *BlobStore) UploadDropletMetadataAction(dropletName string) *models.Acti
 
 func (b *BlobStore) DownloadDropletAction(dropletName string) *models.Action {
 	return models.WrapAction(&models.DownloadAction{
-		From:      b.URL.String() + "/blobs/" + dropletName + "/droplet.tgz",
+		From:      b.URL.String() + "/blobs/" + dropletName + "-droplet.tgz",
 		To:        "/home/vcap",
 		User:      "vcap",
 		LogSource: "DROPLET",

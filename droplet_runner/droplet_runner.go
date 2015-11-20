@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"strings"
 	"time"
 
@@ -97,9 +96,9 @@ func (dr *dropletRunner) ListDroplets() ([]Droplet, error) {
 
 	droplets := []Droplet{}
 	for _, blob := range blobs {
-		pathComponents := strings.Split(blob.Path, "/")
-		if len(pathComponents) == 2 && pathComponents[len(pathComponents)-1] == "droplet.tgz" {
-			droplets = append(droplets, Droplet{Name: pathComponents[len(pathComponents)-2], Size: blob.Size, Created: blob.Created})
+		if strings.HasSuffix(blob.Path, "-droplet.tgz") {
+			dropletName := strings.Replace(blob.Path, "-droplet.tgz", "", 1)
+			droplets = append(droplets, Droplet{Name: dropletName, Size: blob.Size, Created: blob.Created})
 		}
 	}
 
@@ -113,7 +112,7 @@ func (dr *dropletRunner) UploadBits(dropletName, uploadPath string) error {
 	}
 	defer uploadFile.Close()
 
-	return dr.blobStore.Upload(path.Join(dropletName, "bits.zip"), uploadFile)
+	return dr.blobStore.Upload(dropletName+"-bits.zip", uploadFile)
 }
 
 func (dr *dropletRunner) BuildDroplet(taskName, dropletName, buildpackUrl string, environment map[string]string, memoryMB, cpuWeight, diskMB int) error {
@@ -146,7 +145,6 @@ func (dr *dropletRunner) BuildDroplet(taskName, dropletName, buildpackUrl string
 				User: "vcap",
 			}),
 			dr.blobStore.UploadDropletAction(dropletName),
-			dr.blobStore.UploadDropletMetadataAction(dropletName),
 		},
 	})
 
@@ -178,11 +176,6 @@ func (dr *dropletRunner) BuildDroplet(taskName, dropletName, buildpackUrl string
 }
 
 func (dr *dropletRunner) LaunchDroplet(appName, dropletName string, startCommand string, startArgs []string, appEnvironmentParams app_runner.AppEnvironmentParams) error {
-	executionMetadata, err := dr.getExecutionMetadata(path.Join(dropletName, "result.json"))
-	if err != nil {
-		return err
-	}
-
 	dropletAnnotation := annotation{}
 	dropletAnnotation.DropletSource.DropletName = dropletName
 
@@ -216,7 +209,7 @@ func (dr *dropletRunner) LaunchDroplet(appName, dropletName string, startCommand
 		AppArgs: []string{
 			"/home/vcap/app",
 			strings.Join(append([]string{startCommand}, startArgs...), " "),
-			executionMetadata,
+			"{}",
 		},
 
 		Annotation: string(annotationBytes),
@@ -235,23 +228,6 @@ func (dr *dropletRunner) LaunchDroplet(appName, dropletName string, startCommand
 	}
 
 	return dr.appRunner.CreateApp(appParams)
-}
-
-func (dr *dropletRunner) getExecutionMetadata(path string) (string, error) {
-	reader, err := dr.blobStore.Download(path)
-	if err != nil {
-		return "", err
-	}
-
-	var result struct {
-		ExecutionMetadata string `json:"execution_metadata"`
-	}
-
-	if err := json.NewDecoder(reader).Decode(&result); err != nil {
-		return "", err
-	}
-
-	return result.ExecutionMetadata, nil
 }
 
 func dropletMatchesAnnotation(dropletName string, a annotation) bool {
@@ -281,7 +257,7 @@ func (dr *dropletRunner) RemoveDroplet(dropletName string) error {
 
 	found := false
 	for _, blob := range blobs {
-		if strings.HasPrefix(blob.Path, dropletName+"/") {
+		if strings.HasPrefix(blob.Path, dropletName+"-") {
 			if err := dr.blobStore.Delete(blob.Path); err != nil {
 				return err
 			} else {
@@ -298,7 +274,7 @@ func (dr *dropletRunner) RemoveDroplet(dropletName string) error {
 }
 
 func (dr *dropletRunner) ExportDroplet(dropletName string) (io.ReadCloser, error) {
-	dropletReader, err := dr.blobStore.Download(path.Join(dropletName, "droplet.tgz"))
+	dropletReader, err := dr.blobStore.Download(dropletName + "-droplet.tgz")
 	if err != nil {
 		return nil, fmt.Errorf("droplet not found: %s", err)
 	}
@@ -313,7 +289,7 @@ func (dr *dropletRunner) ImportDroplet(dropletName, dropletPath string) error {
 	}
 	defer dropletFile.Close()
 
-	if err := dr.blobStore.Upload(path.Join(dropletName, "droplet.tgz"), dropletFile); err != nil {
+	if err := dr.blobStore.Upload(dropletName+"-droplet.tgz", dropletFile); err != nil {
 		return err
 	}
 

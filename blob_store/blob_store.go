@@ -23,7 +23,6 @@ type DropletStore interface {
 	DownloadAppBitsAction(dropletName string) *models.Action
 	DeleteAppBitsAction(dropletName string) *models.Action
 	UploadDropletAction(dropletName string) *models.Action
-	UploadDropletMetadataAction(dropletName string) *models.Action
 	DownloadDropletAction(dropletName string) *models.Action
 }
 
