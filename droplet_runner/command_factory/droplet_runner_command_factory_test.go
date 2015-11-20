@@ -788,7 +788,7 @@ var _ = Describe("CommandFactory", func() {
 			}))
 			Expect(appEnvParam.EnvironmentVariables).To(Equal(map[string]string{
 				"PROCESS_GUID": "droppy",
-				"MEMORY_LIMIT": "256M",
+				"MEMORY_LIMIT": "128M",
 			}))
 			Expect(appEnvParam.RouteOverrides).To(BeNil())
 		})
