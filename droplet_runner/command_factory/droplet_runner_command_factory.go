@@ -619,17 +619,15 @@ func (factory *DropletRunnerCommandFactory) exportDroplet(context *cli.Context) 
 		return
 	}
 
-	dropletReader, metadataReader, err := factory.dropletRunner.ExportDroplet(dropletName)
+	dropletReader, err := factory.dropletRunner.ExportDroplet(dropletName)
 	if err != nil {
 		factory.UI.SayLine(fmt.Sprintf("Error exporting droplet %s: %s", dropletName, err))
 		factory.ExitHandler.Exit(exit_codes.CommandFailed)
 		return
 	}
 	defer dropletReader.Close()
-	defer metadataReader.Close()
 
 	dropletPath := dropletName + ".tgz"
-	metadataPath := dropletName + "-metadata.json"
 
 	dropletWriter, err := os.OpenFile(dropletPath, os.O_WRONLY|os.O_CREATE, os.FileMode(0644))
 	if err != nil {
@@ -646,22 +644,7 @@ func (factory *DropletRunnerCommandFactory) exportDroplet(context *cli.Context) 
 		return
 	}
 
-	metadataWriter, err := os.OpenFile(metadataPath, os.O_WRONLY|os.O_CREATE, os.FileMode(0644))
-	if err != nil {
-		factory.UI.SayLine(fmt.Sprintf("Error exporting metadata for '%s' to %s: %s", dropletName, metadataPath, err))
-		factory.ExitHandler.Exit(exit_codes.CommandFailed)
-		return
-	}
-
-	_, err = io.Copy(metadataWriter, metadataReader)
-	if err != nil {
-		factory.UI.SayLine(fmt.Sprintf("Error exporting metadata for '%s' to %s: %s", dropletName, metadataPath, err))
-		factory.ExitHandler.Exit(exit_codes.CommandFailed)
-		return
-	}
-	defer dropletWriter.Close()
-
-	factory.UI.SayLine(fmt.Sprintf("Droplet '%s' exported to %s and %s.", dropletName, dropletPath, metadataPath))
+	factory.UI.SayLine(fmt.Sprintf("Droplet '%s' exported to %s.", dropletName, dropletPath))
 }
 
 func (factory *DropletRunnerCommandFactory) parsePortsFromArgs(portsFlag string) ([]uint16, error) {

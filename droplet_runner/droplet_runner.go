@@ -32,7 +32,7 @@ type DropletRunner interface {
 	LaunchDroplet(appName, dropletName, startCommand string, startArgs []string, appEnvironmentParams app_runner.AppEnvironmentParams) error
 	ListDroplets() ([]Droplet, error)
 	RemoveDroplet(dropletName string) error
-	ExportDroplet(dropletName string) (io.ReadCloser, io.ReadCloser, error)
+	ExportDroplet(dropletName string) (io.ReadCloser, error)
 	ImportDroplet(dropletName, dropletPath, metadataPath string) error
 }
 
@@ -297,18 +297,13 @@ func (dr *dropletRunner) RemoveDroplet(dropletName string) error {
 	return nil
 }
 
-func (dr *dropletRunner) ExportDroplet(dropletName string) (io.ReadCloser, io.ReadCloser, error) {
+func (dr *dropletRunner) ExportDroplet(dropletName string) (io.ReadCloser, error) {
 	dropletReader, err := dr.blobStore.Download(path.Join(dropletName, "droplet.tgz"))
 	if err != nil {
-		return nil, nil, fmt.Errorf("droplet not found: %s", err)
+		return nil, fmt.Errorf("droplet not found: %s", err)
 	}
 
-	metadataReader, err := dr.blobStore.Download(path.Join(dropletName, "result.json"))
-	if err != nil {
-		return nil, nil, fmt.Errorf("metadata not found: %s", err)
-	}
-
-	return dropletReader, metadataReader, err
+	return dropletReader, err
 }
 
 func (dr *dropletRunner) ImportDroplet(dropletName, dropletPath, metadataPath string) error {

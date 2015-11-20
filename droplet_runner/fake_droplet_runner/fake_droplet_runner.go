@@ -60,15 +60,14 @@ type FakeDropletRunner struct {
 	removeDropletReturns struct {
 		result1 error
 	}
-	ExportDropletStub        func(dropletName string) (io.ReadCloser, io.ReadCloser, error)
+	ExportDropletStub        func(dropletName string) (io.ReadCloser, error)
 	exportDropletMutex       sync.RWMutex
 	exportDropletArgsForCall []struct {
 		dropletName string
 	}
 	exportDropletReturns struct {
 		result1 io.ReadCloser
-		result2 io.ReadCloser
-		result3 error
+		result2 error
 	}
 	ImportDropletStub        func(dropletName, dropletPath, metadataPath string) error
 	importDropletMutex       sync.RWMutex
@@ -246,7 +245,7 @@ func (fake *FakeDropletRunner) RemoveDropletReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDropletRunner) ExportDroplet(dropletName string) (io.ReadCloser, io.ReadCloser, error) {
+func (fake *FakeDropletRunner) ExportDroplet(dropletName string) (io.ReadCloser, error) {
 	fake.exportDropletMutex.Lock()
 	fake.exportDropletArgsForCall = append(fake.exportDropletArgsForCall, struct {
 		dropletName string
@@ -255,7 +254,7 @@ func (fake *FakeDropletRunner) ExportDroplet(dropletName string) (io.ReadCloser,
 	if fake.ExportDropletStub != nil {
 		return fake.ExportDropletStub(dropletName)
 	} else {
-		return fake.exportDropletReturns.result1, fake.exportDropletReturns.result2, fake.exportDropletReturns.result3
+		return fake.exportDropletReturns.result1, fake.exportDropletReturns.result2
 	}
 }
 
@@ -271,13 +270,12 @@ func (fake *FakeDropletRunner) ExportDropletArgsForCall(i int) string {
 	return fake.exportDropletArgsForCall[i].dropletName
 }
 
-func (fake *FakeDropletRunner) ExportDropletReturns(result1 io.ReadCloser, result2 io.ReadCloser, result3 error) {
+func (fake *FakeDropletRunner) ExportDropletReturns(result1 io.ReadCloser, result2 error) {
 	fake.ExportDropletStub = nil
 	fake.exportDropletReturns = struct {
 		result1 io.ReadCloser
-		result2 io.ReadCloser
-		result3 error
-	}{result1, result2, result3}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDropletRunner) ImportDroplet(dropletName string, dropletPath string, metadataPath string) error {

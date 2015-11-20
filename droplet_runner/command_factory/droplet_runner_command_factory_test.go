@@ -986,7 +986,6 @@ var _ = Describe("CommandFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(ioutil.WriteFile(filepath.Join(exportDir, "droppo.tgz"), []byte("tar"), 0644)).To(Succeed())
-			Expect(ioutil.WriteFile(filepath.Join(exportDir, "droppo-metadata.json"), []byte("json"), 0644)).To(Succeed())
 
 			workingDir, err = ioutil.TempDir("", "working_dir")
 			Expect(err).NotTo(HaveOccurred())
@@ -1008,25 +1007,20 @@ var _ = Describe("CommandFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			defer dropletReader.Close()
 
-			metadataReader, err := os.Open(filepath.Join(exportDir, "droppo-metadata.json"))
-			Expect(err).NotTo(HaveOccurred())
-			defer metadataReader.Close()
-
-			fakeDropletRunner.ExportDropletReturns(dropletReader, metadataReader, nil)
+			fakeDropletRunner.ExportDropletReturns(dropletReader, nil)
 
 			test_helpers.ExecuteCommandWithArgs(exportDropletCommand, []string{"droppo"})
 
-			Expect(outputBuffer).To(test_helpers.SayLine("Droplet 'droppo' exported to droppo.tgz and droppo-metadata.json."))
+			Expect(outputBuffer).To(test_helpers.SayLine("Droplet 'droppo' exported to droppo.tgz."))
 			Expect(fakeDropletRunner.ExportDropletCallCount()).To(Equal(1))
 			Expect(fakeDropletRunner.ExportDropletArgsForCall(0)).To(Equal("droppo"))
 
 			Expect(os.Stat("droppo.tgz")).NotTo(BeNil())
-			Expect(os.Stat("droppo-metadata.json")).NotTo(BeNil())
 		})
 
 		Context("when the droplet runner returns errors", func() {
 			It("prints an error", func() {
-				fakeDropletRunner.ExportDropletReturns(nil, nil, errors.New("failed"))
+				fakeDropletRunner.ExportDropletReturns(nil, errors.New("failed"))
 
 				test_helpers.ExecuteCommandWithArgs(exportDropletCommand, []string{"droppo"})
 
