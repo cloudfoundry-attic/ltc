@@ -224,6 +224,48 @@ var _ = Describe("CliAppFactory", func() {
 			})
 
 			Context("Any other command", func() {
+				Context("when run with -h", func() {
+					It("does not verify the current target", func() {
+						cliConfig.SetTarget("my-lattice.example.com")
+						Expect(cliConfig.Save()).To(Succeed())
+
+						commandRan := false
+						cliApp.Commands = []cli.Command{
+							cli.Command{
+								Name:   "print-a-unicorn",
+								Action: func(ctx *cli.Context) { commandRan = true },
+							},
+						}
+
+						err := cliApp.Run([]string{"ltc", "print-a-unicorn", "-h"})
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(commandRan).To(BeFalse())
+						Expect(fakeTargetVerifier.VerifyTargetCallCount()).To(Equal(0))
+					})
+				})
+
+				Context("when run with --help", func() {
+					It("does not verify the current target", func() {
+						cliConfig.SetTarget("my-lattice.example.com")
+						Expect(cliConfig.Save()).To(Succeed())
+
+						commandRan := false
+						cliApp.Commands = []cli.Command{
+							cli.Command{
+								Name:   "print-a-unicorn",
+								Action: func(ctx *cli.Context) { commandRan = true },
+							},
+						}
+
+						err := cliApp.Run([]string{"ltc", "print-a-unicorn", "--help"})
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(commandRan).To(BeFalse())
+						Expect(fakeTargetVerifier.VerifyTargetCallCount()).To(Equal(0))
+					})
+				})
+
 				Context("when targeted receptor is up and we are authorized", func() {
 					It("executes the command", func() {
 						fakeTargetVerifier.VerifyTargetReturns(true, true, nil)

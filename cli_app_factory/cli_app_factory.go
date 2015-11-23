@@ -125,8 +125,14 @@ func MakeCliApp(
 			return nil
 		}
 
+		for _, arg := range args {
+			if arg == "-h" || arg == "--help" {
+				return nil
+			}
+		}
+
 		if receptorUp, authorized, err := targetVerifier.VerifyTarget(config.Receptor()); !receptorUp {
-			ui.SayLine(fmt.Sprintf("Error connecting to the receptor. Make sure your lattice target is set, and that lattice is up and running.\n\tUnderlying error: %s", err.Error()))
+			ui.SayLine(fmt.Sprintf("Error connecting to the receptor. Make sure your lattice target is set, and that lattice is up and running.\n\tUnderlying error: %s", err))
 			return err
 		} else if !authorized {
 			ui.SayLine("Could not authenticate with the receptor. Please run ltc target with the correct credentials.")
